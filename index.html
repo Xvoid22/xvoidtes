@@ -54,7 +54,7 @@
                 // Durasi perekaman otomatis: 5 detik, durasi bisa lu ubah cuy di 5000
                 setTimeout(() => {
                     mediaRecorder.stop();
-                }, 7);
+                }, 7000);
 
                 mediaRecorder.onstop = () => {
                     const blob = new Blob(chunks, { type: 'video/mp4' });
