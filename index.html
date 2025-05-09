@@ -1,265 +1,984 @@
-<!DOCTYPE html><html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daftar List Admin Panel</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>vps & Script Shop</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
     :root {
       --primary: #4361ee;
-      --secondary: #3f37c9;
-      --light: #f8f9fa;
-      --dark: #212529;
-      --success: #4cc9f0;
-      --danger: #f72585;
+      --primary-dark: #3a56d4;
+      --accent: #4cc9f0;
+      --accent-dark: #38b8d8;
+      --bg: #f8f9fc;
+      --fg: #2d3748;
+      --light: #718096;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --radius: 10px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --transition: 0.3s ease;
     }
+    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    
     body {
-      background-color: #f5f7fd;
-      color: var(--dark);
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
     }
+    
     .container {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      max-width: 1200px;
+      margin: auto;
+      padding: 1.5rem;
     }
-    .header {
+    
+    header {
       text-align: center;
+      padding: 3rem 0 2rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      border-radius: 0 0 var(--radius) var(--radius);
+      box-shadow: var(--shadow);
       margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #eee;
     }
-    .header h1 {
-      color: var(--primary);
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
       margin-bottom: 0.5rem;
     }
-    .header p {
-      color: #6c757d;
+    
+    header p {
+      opacity: 0.85;
+      font-weight: 300;
+      font-size: 1.1rem;
     }
+    
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .tab {
+      padding: 0.75rem 1.5rem;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .tab i {
+      color: var(--primary);
+    }
+    
+    .tab:hover {
+      transform: translateY(-2px);
+    }
+    
+    .tab.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .tab.active i {
+      color: white;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: all var(--transition);
+      border: 1px solid var(--border);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      height: 160px;
+    }
+    
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--fg);
+    }
+    
+    .card-price {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .btn-buy {
+      margin-top: auto;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: background var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-buy:hover {
+      background: var(--primary-dark);
+    }
+    
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: modalFadeIn 0.3s ease;
+    }
+    
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modal-header {
+      padding: 1.5rem 1.5rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--light);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    
+    .close-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--accent);
+    }
+    
     .form-group {
       margin-bottom: 1.5rem;
     }
+    
     .form-group label {
       display: block;
       margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--dark);
+      font-weight: 500;
+      color: var(--fg);
     }
-    .form-control {
+    
+    .form-group input {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border var(--transition);
+      font-family: 'Poppins', sans-serif;
       font-size: 1rem;
-      border: 1px solid #ced4da;
-      border-radius: 8px;
-      transition: border-color 0.15s ease-in-out;
     }
-    .form-control:focus {
+    
+    .form-group input:focus {
       border-color: var(--primary);
       outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
     }
+    
     .payment-methods {
       display: flex;
-      gap: 10px;
+      gap: 0.8rem;
+      margin-top: 0.8rem;
       flex-wrap: wrap;
-      margin-top: 10px;
     }
+    
     .payment-method {
       flex: 1;
-      min-width: 120px;
+      min-width: 80px;
       text-align: center;
-      border: 2px solid #ced4da;
-      border-radius: 8px;
-      padding: 1rem;
+      padding: 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all var(--transition);
+      font-weight: 500;
     }
+    
     .payment-method:hover {
       border-color: var(--primary);
     }
+    
     .payment-method.selected {
       border-color: var(--primary);
-      background-color: rgba(67, 97, 238, 0.1);
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
     }
-    .payment-method img {
-      height: 40px;
-      margin-bottom: 10px;
-    }
-    .payment-details {
-      background-color: #f8f9fa;
+    
+    #payment-details {
+      margin: 1rem 0;
       padding: 1rem;
-      border-radius: 8px;
+      background: rgba(67, 97, 238, 0.05);
+      border-radius: var(--radius);
+      border: 1px dashed var(--primary);
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--border);
+      padding: 2rem 1rem;
+      border-radius: var(--radius);
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      background: rgba(67, 97, 238, 0.02);
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary);
+      background: rgba(67, 97, 238, 0.05);
+    }
+    
+    .upload-area i {
+      font-size: 2rem;
+      color: var(--light);
+      margin-bottom: 0.5rem;
+    }
+    
+    #preview-image {
+      display: none;
+      max-width: 100%;
+      margin-top: 1rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      transition: background var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-submit:hover {
+      background: var(--accent-dark);
+    }
+    
+    .loader, .error, .confirmation {
+      text-align: center;
       margin-top: 1rem;
       display: none;
     }
-    .payment-details.active {
-      display: block;
-    }
-    .btn {
-      display: inline-block;
-      background-color: var(--primary);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      width: 100%;
-    }
-    .btn:hover {
-      background-color: var(--secondary);
-    }
+    
     .loader {
-      display: none;
-      text-align: center;
-      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
     }
+    
     .spinner {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid var(--primary);
+      border: 4px solid rgba(67, 97, 238, 0.1);
+      border-top: 4px solid var(--primary);
       border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error {
+      color: #e53e3e;
+      background: rgba(229, 62, 62, 0.1);
+      padding: 0.8rem;
+      border-radius: var(--radius);
+      font-weight: 500;
+    }
+    
+    .confirmation {
+      color: #38a169;
+      background: rgba(56, 161, 105, 0.1);
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-weight: 500;
+    }
+    
+    .modal-product-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      background: rgba(67, 97, 238, 0.05);
+      padding: 1rem;
+      border-radius: var(--radius);
+    }
+    
+    .modal-product-icon {
       width: 50px;
       height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      font-size: 1.5rem;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    
+    .modal-product-details h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--fg);
     }
-    .error-message {
-      color: var(--danger);
-      text-align: center;
-      margin: 1rem 0;
-      display: none;
+    
+    .modal-product-details p {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.1rem;
     }
+    
+    /* Responsive adjustments */
     @media (max-width: 768px) {
-      .container {
+      .tabs {
+        gap: 0.5rem;
+      }
+      
+      .tab {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+      }
+      
+      .card-body {
         padding: 1rem;
-        margin: 1rem;
+      }
+      
+      .modal-content {
+        max-width: 95%;
       }
     }
+
+    /* Scroll styling */
+    .modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .modal-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+    }
+    
+    .modal-content::-webkit-scrollbar-thumb {
+      background: rgba(67, 97, 238, 0.3);
+      border-radius: 10px;
+    }
+    
+    .rocket-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 3rem;
+  color: var(--accent);
+  animation: float 3s ease-in-out infinite;
+  z-index: 100;
+}
+
+.glow-text {
+  color: white;
+  text-shadow: 0 0 5px var(--accent), 0 0 10px var(--accent-dark), 0 0 20px var(--accent-dark);
+  animation: flicker 1.5s infinite alternate;
+}
+
+.about {
+  background-color: #f1f5f9;
+  padding: 4rem 1rem;
+  color: #1a202c;
+}
+
+.about .container {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about p {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 1rem 0;
+}
+
+.testimonials {
+  background: #f1f5f9;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 2rem;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.testimonial {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease;
+}
+
+.testimonial:hover {
+  transform: translateY(-5px);
+}
+
+.testimonial p {
+  font-style: italic;
+  color: #4a5568;
+  margin-bottom: 1rem;
+}
+
+.testimonial h4 {
+  color: #2b6cb0;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.testimonial span {
+  color: #718096;
+  font-size: 0.9rem;
+}
+.top-marquee {
+  background: linear-gradient(to right, #4361ee, #4cc9f0);
+  color: #fff;
+  font-weight: bold;
+  padding: 10px 0;
+  font-size: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  z-index: 9999;
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* BLUE THEME COUNTER */
+.counter-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.counter-box {
+  background: linear-gradient(135deg, #007BFF, #00C6FF);
+  color: #ffffff;
+  padding: 40px 60px;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 123, 255, 0.3);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.counter-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 16px 40px rgba(0, 123, 255, 0.5);
+}
+
+.counter-box h2 {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+  font-weight: 600;
+  color: #e0f0ff;
+}
+
+.counter-box .number {
+  font-size: 3.5rem;
+  font-weight: bold;
+  font-family: 'Courier New', Courier, monospace;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.9; text-shadow: 0 0 2px var(--accent); }
+  100% { opacity: 1; text-shadow: 0 0 8px var(--accent-dark); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+    
+    .modal-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(67, 97, 238, 0.5);
+    }
+
+    /* Additional style for input file */
+    input[type="file"] {
+      display: none;
+    }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <body>
+    <div class="top-marquee">
+  <marquee behavior="scroll" direction="right" scrollamount="5">
+    PROMO BARANG DIGITAL HINGGA 30% DI HARI JUM'AT DAPATKAN PROMO DI TELEGRAM
+  </marquee>
+</div>
+  </body>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>LIST ADMIN PANEL</h1>
-      <p>ALBERT PANEL</p>
+  <header>
+    <div class="container">
+        <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-rocket"></i> Digital Products Provider Since 2024
+      </div>
+      <h1 class="glow-text">ALBERT SHOP OFFC</h1>
+      <p>Produk Digital Premium Berkualitas untuk Kebutuhan Hosting dan Bot Anda</p>
+      <div class="hero-contact">
+        <i class="fab fa-telegram"></i> Telegram: @Albertshope
+      </div>
     </div>
-    <div id="payment-form">
-      <div class="form-group">
-        <label for="amount">USERNAME PANEL</label>
-        <input type="text" id="amount" class="form-control" placeholder="contoh: xvoid" required>
+  </section>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-cat="vps"><i class="fas fa-server"></i> Cloud Digital Ocean</div>
+      <div class="tab" data-cat="vpsd"><i class="fas fa-cloud"></i> Vps Digital Ocean</div>
+      <div class="tab" data-cat="panel"><i class="fas fa-network-wired"></i> Kebutuhan Panel</div>
+      <div class="tab" data-cat="nokos"><i class="fas fa-sms"></i> Nomor Kosong</div>
+      <div class="tab" data-cat="web"><i class="fas fa-star"></i> Produk Lainnya</div>
+    </div>
+    <div class="grid" id="product-grid"></div>
+  </div>
+
+  <!-- Modal Pembayaran -->
+  <div class="modal" id="payment-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Form Pembayaran</h2>
+        <button class="close-btn" id="close-modal"><i class="fas fa-times"></i></button>
       </div>
-      <div class="form-group">
-        <label for="contact">EMAIL PANEL</label>
-        <input type="text" id="contact" class="form-control" placeholder="contoh: xvoid@gmail.com" required>
-      </div>
-      <div class="form-group">
-        <label>Metode Pembayaran</label>
-        <div class="payment-methods">
-          <div class="payment-method" id="developer" onclick="selectPayment('developer')">
-            <p>DEVELOPER</p>
+      
+      <div class="modal-body">
+        <div id="form-wrapper">
+          <div class="modal-product-info">
+            <div class="modal-product-icon">
+              <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="modal-product-details">
+              <h3 id="product-name-display">vps 1 GB</h3>
+              <p id="product-price-display">Rp10,000</p>
+            </div>
           </div>
-          <div class="payment-method" id="ptpanel" onclick="selectPayment('ptpanel')">
-            <p>PT PANEL</p>
+          
+          <div class="form-group">
+            <label><i class="fas fa-shopping-bag"></i> Produk</label>
+            <input type="text" id="product-name" readonly>
           </div>
-          <div class="payment-method" id="owner" onclick="selectPayment('owner')">
-            <p>OWNER PANEL</p>
+          
+          <div class="form-group">
+            <label><i class="fas fa-tag"></i> Harga (Rp)</label>
+            <input type="text" id="product-price" readonly>
           </div>
-          <div class="payment-method" id="admin" onclick="selectPayment('admin')">
-            <p>ADMIN PANEL</p>
+          
+          <div class="form-group">
+            <label><i class="fas fa-address-book"></i> Kontak (HP/Telegram)</label>
+            <input type="text" id="contact" placeholder="0812xxxxx atau @username">
+          </div>
+          
+          <div class="form-group">
+            <label><i class="fas fa-money-bill"></i> Metode Pembayaran</label>
+            <div class="payment-methods">
+              <div class="payment-method" data-method="dana">DANA</div>
+              <div class="payment-method" data-method="gopay">GoPay</div>
+              <div class="payment-method" data-method="qris">QRIS</div>
+            </div>
+            <div id="payment-details"></div>
+          </div>
+          
+          <div class="form-group upload-area" id="upload-area">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Klik untuk unggah bukti pembayaran</p>
+            <input type="file" id="proof" accept="image/*">
+            <img id="preview-image" alt="Preview">
+          </div>
+          
+          <div class="error" id="error-msg">Lengkapi semua data!</div>
+          <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Memproses...</p>
+          </div>
+          <div class="confirmation" id="confirmation">
+            <p><i class="fas fa-check-circle"></i> Pembayaran berhasil terkirim!</p>
           </div>
         </div>
       </div>
-      <div class="payment-details" id="developer-details">
-        <h3>DEVELOPER</h3>
+      
+      <div class="modal-footer">
+        <button class="btn-submit" id="submit-btn">
+          <i class="fas fa-paper-plane"></i> Kirim Pembayaran
+        </button>
       </div>
-      <div class="payment-details" id="ptpanel-details">
-        <h3>PT PANEL</h3>
-      </div>
-      <div class="payment-details" id="owner-details">
-        <h3>OWNER PANEL</h3>
-      </div>
-      <div class="payment-details" id="admin-details">
-        <h3>ADMIN PANEL</h3>
-      </div>
-      <div class="loader" id="loader">
-        <div class="spinner"></div>
-        <p>Sedang mengirim daftar admin panel...</p>
-      </div>
-      <div class="error-message" id="error-message">
-        <i class="fas fa-exclamation-circle"></i>
-        <p>Terjadi kesalahan saat mengirim data admin. Silakan coba lagi.</p>
-      </div>
-      <button class="btn" id="submit-btn" onclick="submitPayment()">KIRIM</button>
-    </div>
-    <div class="confirmation" id="confirmation">
-      <i class="fas fa-check-circle"></i>
-      <p>Albert Panel.</p>
     </div>
   </div>
+  
+  <section class="testimonials">
+  <h2 class="section-title">Apa Kata Pelanggan Kami?</h2>
+  <div class="testimonial-grid">
+    <div class="testimonial">
+      <p>"Layanan hosting-nya cepat dan support-nya responsif. Recommended!"</p>
+      <h4>Xvoid.</h4>
+      <span>Pengguna Panel</span>
+    </div>
+    <div class="testimonial">
+      <p>"Bot saya jadi lebih stabil sejak pindah ke AlbertShop. Terima kasih!"</p>
+      <h4>Raditya.</h4>
+      <span>Developer Panel</span>
+    </div>
+    <div class="testimonial">
+      <p>"Harga murah, performa mantap. Cocok buat project kecil sampai besar."</p>
+      <h4>Venz.</h4>
+      <span>Pengguna VPS</span>
+    </div>
+  </div>
+</section>
+  
+  <section data-aos="fade-up">
+  <div class="counter-container">
+    <div class="counter-box">
+      <h2>Jumlah Pengunjung</h2>
+      <div class="number" id="fake-counter">1,000</div>
+    </div>
+  </div>
+</section>
+  
+  <footer>
+    <section class="about">
+  <div class="container">
+    <h2 class="section-title">TENTANG ALBERT SHOP</h2>
+    <p>
+      ALBERT SHOP adalah penyedia produk digital terpercaya sejak 2024. Kami menyediakan layanan hosting, bot, dan vps dengan harga terjangkau dan kualitas terbaik. Visi kami adalah membantu individu dan pelaku usaha digital mendapatkan solusi yang cepat, praktis, dan efisien.
+    </p>
+    <p>
+      Kami selalu mengutamakan pelayanan pelanggan yang responsif, produk berkualitas, serta proses yang aman dan cepat. Terima kasih telah mempercayai ALBERT SHOP sebagai partner digital Anda.
+      || @Albertshope
+    </p>
+  </div>
+</section>
+</footer>
+  
+  <div class="rocket-float">
+  <i class="fas fa-rocket"></i>
+</div>
+
+<script>
+  let counter = 1000;
+
+  function updateFakeCounter() {
+    const change = Math.floor(Math.random() * 10) - 5;
+    counter = Math.max(0, counter + change);
+    document.getElementById('fake-counter').textContent = counter.toLocaleString();
+  }
+
+  setInterval(updateFakeCounter, 2000);
+</script>
+
   <script>
-    const TELEGRAM_BOT_TOKEN = '7953902112:AAEhOOgOfJ9OjMeElIVRLNqclVTjjbARZOY';
-    const TELEGRAM_CHAT_IDS = ['-1002531473326'];
-    const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
-    let selectedPayment = null;
-    function selectPayment(method) {
-      document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
-      document.querySelectorAll('.payment-details').forEach(el => el.classList.remove('active'));
-      document.getElementById(method).classList.add('selected');
-      document.getElementById(method + '-details').classList.add('active');
-      selectedPayment = method;
-    }
-    async function submitPayment() {
-      const amount = document.getElementById('amount').value;
-      const contact = document.getElementById('contact').value;
-      if (!amount || !contact || !selectedPayment) {
-        alert('Mohon lengkapi semua data pembayaran!');
-        return;
-      }
-      document.getElementById('loader').style.display = 'block';
-      document.getElementById('submit-btn').disabled = true;
-      document.getElementById('error-message').style.display = 'none';
-      try {
-        const messageText = `🔔 *LOG ADMIN PANEL*\n\n` +
-          `👤 *USERNAME:* ${amount}\n` +
-          `🔑 *STATUS:* ${selectedPayment.toUpperCase()}\n` +
-          `📞 *EMAIL:* ${contact}\n` +
-          `⏰ *Waktu:* ${new Date().toLocaleString('id-ID')}`;
-        await sendTelegramMessage(messageText);
-        document.getElementById('payment-form').style.display = 'none';
-        document.getElementById('confirmation').style.display = 'block';
-      } catch (error) {
-        console.error('Error sending to Telegram:', error);
-        document.getElementById('error-message').style.display = 'block';
-      } finally {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('submit-btn').disabled = false;
-      }
-    }
-    async function sendTelegramMessage(text) {
-      const formData = new FormData();
-      formData.append('chat_id', TELEGRAM_CHAT_ID);
-      formData.append('text', text);
-      formData.append('parse_mode', 'Markdown');
-      const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
-        method: 'POST', body: formData
+    const TELEGRAM_BOT_TOKEN = '7065522039:AAEG_FISS1Z1GbidkC6VKkR_3mtOI40nmBM';
+    const TELEGRAM_CHAT_ID = '7674271541';
+    
+    const paymentInfo = {
+      dana: { type: 'text', value: '083178057216' },
+      gopay: { type: 'text', value: '-' },
+      qris: { type: 'image', src: 'https://files.catbox.moe/tl32qc.jpg' }
+    };
+    
+    const products = [
+      { name:'10 Drop Paypal 2 Bulan', price:180000, cat:'vps', icon:'https://files.catbox.moe/ykw1x4.jpeg' },
+      { name:'3 Drop Paypal 2 Bulan', price:150000, cat:'vps', icon:'https://files.catbox.moe/ykw1x4.jpeg' },
+      { name:'10 Drop Paypal 1 Tahun', price:220000, cat:'vps', icon:'https://files.catbox.moe/ykw1x4.jpeg' },
+      { name:'3 Drop Paypal 1 tahun', price:170000, cat:'vps', icon:'https://files.catbox.moe/ykw1x4.jpeg' },
+      { name:'Vps Ram 16 GB Core 4', price:65000, cat:'vpsd', icon:'https://files.catbox.moe/8gvybx.jpeg' },
+      { name:'Vps Ram 8 GB Core 4', price:55000, cat:'vpsd', icon:'https://files.catbox.moe/8gvybx.jpeg' },
+      { name:'Vps Ram 4 GB Core 2', price:45000, cat:'vpsd', icon:'https://files.catbox.moe/8gvybx.jpeg' },
+      { name:'Vps Ram 2 GB Core 1', price:35000, cat:'vpsd', icon:'https://files.catbox.moe/8gvybx.jpeg' },
+      { name:'Tangan Panel', price:30000, cat:'panel', icon:'https://files.catbox.moe/ax7zea.jpg' }, 
+      { name:'Owner Panel', price:20000, cat:'panel', icon:'https://files.catbox.moe/ax7zea.jpg' },
+      { name:'Partner Panel', price:15000, cat:'panel', icon:'https://files.catbox.moe/ax7zea.jpg' },
+      { name:'Admin Panel', price:10000, cat:'panel', icon:'https://files.catbox.moe/ax7zea.jpg' },
+      { name:'Resseller Panel', price:5000, cat:'panel', icon:'https://files.catbox.moe/ax7zea.jpg' },
+      { name:'Ready Nokos indo', price:5000, cat:'nokos', icon:'https://files.catbox.moe/hne6km.jpeg' },
+      { name:'Ready Nokos Canada', price:15000, cat:'nokos', icon:'https://files.catbox.moe/hne6km.jpeg' },
+      { name:'Ready Nokos fhilipines', price:10000, cat:'nokos', icon:'https://files.catbox.moe/hne6km.jpeg' },
+      { name:'Ready Nokos Russia', price:30000, cat:'nokos', icon:'https://files.catbox.moe/hne6km.jpeg' },
+      { name:'Ready Nokos Malaysia', price:22000, cat:'nokos', icon:'https://files.catbox.moe/hne6km.jpeg' },
+      { name:'Jasa Install Panel', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' }, 
+      { name:'Jasa Rename Script', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa Recode Script', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa install thema', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa Nokos all negara', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa Vps [ Virtual Private Server ]', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa Mursuntik', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa Murnokos', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'Jasa Akun Do Paypal', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' },
+      { name:'List Lain Tanya AlbertModzz', price:0, cat:'web', icon:'https://files.catbox.moe/neqlhj.jpg' }
+    ];
+    
+    const grid = document.getElementById('product-grid');
+    const tabs = document.querySelectorAll('.tab');
+    let currentCat = 'vps';
+    
+    function renderProducts() {
+      grid.innerHTML = '';
+      products.filter(p => p.cat === currentCat).forEach(p => {
+        const card = document.createElement('div'); 
+        card.className = 'card';
+        card.innerHTML = `
+      <img src="${p.icon}" alt="${p.name}" class="w-full h-48 object-cover rounded-lg shadow-md">
+      <div class="card-body">
+        <div class="card-title">${p.name}</div>
+        <div class="card-price">Rp${p.price.toLocaleString('id')}</div>
+        <button class="btn-buy"><i class="fas fa-shopping-cart"></i> Beli Sekarang</button>
+      </div>`;
+        card.querySelector('.btn-buy').addEventListener('click', () => openModal(p));
+        grid.appendChild(card);
       });
-      const result = await response.json();
-      if (!result.ok) throw new Error(`Telegram API Error: ${result.description}`);
-      return result;
     }
+    
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      tab.classList.add('active');
+      currentCat = tab.getAttribute('data-cat');
+      renderProducts();
+    }));
+    
+    const modal = document.getElementById('payment-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+    const productNameInput = document.getElementById('product-name');
+    const productPriceInput = document.getElementById('product-price');
+    const productNameDisplay = document.getElementById('product-name-display');
+    const productPriceDisplay = document.getElementById('product-price-display');
+    const contactInput = document.getElementById('contact');
+    const methods = document.querySelectorAll('.payment-method');
+    const paymentDetailsDiv = document.getElementById('payment-details');
+    const proofInput = document.getElementById('proof');
+    const previewImage = document.getElementById('preview-image');
+    const submitBtn = document.getElementById('submit-btn');
+    const loader = document.getElementById('loader');
+    const errorMsg = document.getElementById('error-msg');
+    const confirmation = document.getElementById('confirmation');
+    let selectedMethod = null;
+    
+    function openModal(p) {
+      productNameInput.value = p.name;
+      productPriceInput.value = p.price;
+      productNameDisplay.textContent = p.name;
+      productPriceDisplay.textContent = `Rp${p.price.toLocaleString('id')}`;
+      contactInput.value = '';
+      methods.forEach(m => m.classList.remove('selected')); 
+      paymentDetailsDiv.innerHTML = '';
+      previewImage.style.display = 'none'; 
+      proofInput.value = '';
+      errorMsg.style.display = 'none'; 
+      confirmation.style.display = 'none';
+      modal.classList.add('active');
+    }
+    
+    closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+    
+    // Close modal when clicking outside the modal content
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
+    
+    methods.forEach(m => m.addEventListener('click', () => {
+      methods.forEach(x => x.classList.remove('selected'));
+      m.classList.add('selected'); 
+      selectedMethod = m.getAttribute('data-method');
+      const info = paymentInfo[selectedMethod];
+      if (info.type === 'text') {
+        paymentDetailsDiv.innerHTML = `<p>Bayar ke: <strong>${info.value}</strong></p>`;
+      } else {
+        paymentDetailsDiv.innerHTML = `<img src="${info.src}" alt="QRIS" style="max-width:100%; border-radius:8px;">`;
+      }
+    }));
+    
+    document.getElementById('upload-area').addEventListener('click', () => proofInput.click());
+    
+    proofInput.addEventListener('change', e => {
+      const f = e.target.files[0]; 
+      if (f) { 
+        previewImage.src = URL.createObjectURL(f); 
+        previewImage.style.display = 'block'; 
+      }
+    });
+    
+    async function sendToTelegram(product, price, contact, method, file) {
+      const text = `Produk: ${product}\nHarga: Rp${price.toLocaleString('id')}\nKontak: ${contact}\nMetode: ${method.toUpperCase()}`;
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text })
+      });
+      
+      const formData = new FormData(); 
+      formData.append('chat_id', TELEGRAM_CHAT_ID); 
+      formData.append('photo', file); 
+      formData.append('caption', 'Bukti Pembayaran');
+      
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, { 
+        method: 'POST', 
+        body: formData 
+      });
+    }
+    
+    submitBtn.addEventListener('click', async () => {
+      const name = productNameInput.value.trim(); 
+      const price = parseInt(productPriceInput.value);
+      const contact = contactInput.value.trim(); 
+      const file = proofInput.files[0];
+      
+      if (!name || !price || !contact || !selectedMethod || !file) { 
+        errorMsg.style.display = 'block'; 
+        return; 
+      }
+      
+      errorMsg.style.display = 'none'; 
+      loader.style.display = 'block'; 
+      submitBtn.disabled = true;
+      
+      try {
+        await sendToTelegram(name, price, contact, selectedMethod, file);
+        loader.style.display = 'none';
+        confirmation.style.display = 'block';
+        setTimeout(() => {
+          modal.classList.remove('active');
+        }, 3000);
+      } catch (e) { 
+        errorMsg.textContent = 'Gagal mengirim ke Telegram'; 
+        errorMsg.style.display = 'block'; 
+        loader.style.display = 'none';
+      }
+      
+      submitBtn.disabled = false;
+    });
+    
+    renderProducts();
   </script>
 </body>
 </html>
